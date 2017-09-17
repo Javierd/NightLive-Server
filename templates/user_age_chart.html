@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>User statistics</title>
+    <!-- import plugin script -->
+    <script src='../static/Chart.min.js'></script>
+  </head>
+  <body>
+    <!-- bar chart canvas element -->
+    <canvas id="chart" width="600" height="400"></canvas>
+    <button onclick="manageCharts()" id="chartDataButton">Gender chart</button>
+
+    <script>
+      // Global parameters:
+      // Do not resize the chart canvas when its container does
+      Chart.defaults.global.responsive = false;
+
+      // define the chart data
+      var ageChartData = {
+        labels : [{% for label in agesLabels %}
+                   "{{label}}",
+                  {% endfor %}],
+        datasets : [{
+            label: '{{ legend }}',
+            data : [{% for item in agesValues %}
+                      {{item}},
+                    {% endfor %}],
+            backgroundColor: [{% for color in ageBgColors %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderColor: [{% for color in ageBorderColors %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderWidth: 0,
+        }]
+      }
+
+      // define the chart data
+      var sexChartData = {
+        labels : [{% for label in sexLabels %}
+                   "{{label}}",
+                  {% endfor %}],
+        datasets : [{
+            label: '{{ legend }}',
+            data : [{% for item in sexValues %}
+                      {{item}},
+                    {% endfor %}],
+            backgroundColor: [{% for color in sexBgColors %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderColor: [{% for color in sexBorderColors %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderWidth: 0,
+        }]
+      }
+
+      var pieChartOptions = {
+        rotation: -Math.PI,
+        cutoutPercentage: 30,
+        circumference: Math.PI,
+        legend: {
+          position: 'left'
+        },
+        animation: {
+          animateRotate: true,
+          animateScale: false
+        }
+      };
+
+      // get chart canvas
+      var ctx = document.getElementById("chart").getContext("2d");
+      
+      var pieChart = new Chart(ctx, {
+        type: 'pie',
+        data: ageChartData,
+        options: pieChartOptions
+      });
+
+      function manageCharts(){
+        var button = document.getElementById("chartDataButton");
+        var previousData = pieChart.config.data;
+      
+        if(previousData == ageChartData){
+          button.textContent = "Age chart";
+          showSexData();
+        }else if(previousData == sexChartData){
+          button.textContent = "Gender chart";
+          showAgeData();
+        }
+      }
+
+      function showSexData(){
+        pieChart.config.data = sexChartData;
+        pieChart.update();
+      };
+
+      function showAgeData(){
+        pieChart.config.data = ageChartData;
+        pieChart.update();
+      };
+
+    </script>
+
+  </body>
+</html>
