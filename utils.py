@@ -2,6 +2,7 @@ import time
 import math
 import sqlite3
 from random import randint
+from datetime import datetime, timezone, date
 
 people = [  [40.359105, -3.685292], #Casa
 			[40.360143, -3.685635], #Calle generosidad
@@ -17,6 +18,18 @@ people = [  [40.359105, -3.685292], #Casa
 
 def timeInMillis():
 	return int(round(time.time() * 1000))
+
+def dayInMillis():
+	#Return the time in millis at a fixed hour
+	#12:00 AM
+	#TODO Check if UTC time could cause any trouble with the hours and dates
+	dt = datetime.now(timezone.utc)
+	dt = dt.replace(hour=12, minute=0, second=0, microsecond=0)
+	return int(round(dt.timestamp()*1000))
+
+def millisToDate(millis, format):
+	d = date.fromtimestamp(millis/1000)
+	return d.strftime(format)
 
 def getRadius(numPoints):
 	#Linear ecuation, f(15)=5, f(100)=60

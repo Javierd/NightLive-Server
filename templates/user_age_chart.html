@@ -5,56 +5,98 @@
     <title>User statistics</title>
     <!-- import plugin script -->
     <script src='../static/Chart.min.js'></script>
+
+    <script type="text/javascript"
+      src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript">
+      var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+ 
   </head>
   <body>
     <!-- bar chart canvas element -->
     <canvas id="chart" width="600" height="400"></canvas>
     <button onclick="manageCharts()" id="chartDataButton">Gender chart</button>
+    <button onclick="inflowChart()" id="inflowChartButton">Inflow chart</button>
+    <!--<button href=# id=ajaxButton>Text</button>
 
-    <script>
+    <script type="text/javascript">
+      $(function() {
+        var submit_form = function(e) {
+          $.getJSON($SCRIPT_ROOT + '/_add_numbers', {
+            a: "Test1",
+            b: "Test2"
+          }, function(data) {
+            $('#result').text(data.result);
+            $('input[name=a]').focus().select();
+          });
+          return false;
+        };
+
+        $('button#ajaxButton').bind('click', submit_form);
+      });
+    </script>-->
+
+    <script type="text/javascript">
       // Global parameters:
       // Do not resize the chart canvas when its container does
       Chart.defaults.global.responsive = false;
 
-      // define the chart data
+      // define the age chart data
       var ageChartData = {
-        labels : [{% for label in agesLabels %}
+        labels : [{% for label in usersLabels[1] %}
                    "{{label}}",
                   {% endfor %}],
         datasets : [{
             label: '{{ legend }}',
-            data : [{% for item in agesValues %}
+            data : [{% for item in usersValues[1] %}
                       {{item}},
                     {% endfor %}],
-            backgroundColor: [{% for color in ageBgColors %}
+            backgroundColor: [{% for color in usersBgColors[1] %}
                       "{{color}}",
                     {% endfor %}],
-            borderColor: [{% for color in ageBorderColors %}
+            borderColor: [{% for color in usersBorderColors[1] %}
                       "{{color}}",
                     {% endfor %}],
             borderWidth: 0,
         }]
       }
 
-      // define the chart data
+      // define the gender chart data
       var sexChartData = {
-        labels : [{% for label in sexLabels %}
+        labels : [{% for label in usersLabels[0] %}
                    "{{label}}",
                   {% endfor %}],
         datasets : [{
-            label: '{{ legend }}',
-            data : [{% for item in sexValues %}
+            label: "{{ legend }}",
+            data : [{% for item in usersValues[0] %}
                       {{item}},
                     {% endfor %}],
-            backgroundColor: [{% for color in sexBgColors %}
+            backgroundColor: [{% for color in usersBgColors[0] %}
                       "{{color}}",
                     {% endfor %}],
-            borderColor: [{% for color in sexBorderColors %}
+            borderColor: [{% for color in usersBorderColors[0] %}
                       "{{color}}",
                     {% endfor %}],
             borderWidth: 0,
         }]
       }
+
+      // define the place inflow chart data
+      var inflowChartData = {
+        labels : [{% for label in inflowLabels %}
+                   "{{label}}",
+                  {% endfor %}],
+        datasets : [{
+            label: "Number of people along the night",
+            backgroundColor: "rgba(0, 188, 212, 0.4)",
+            borderColor: "rgba(0, 188, 212, 0.6)",
+            data : [{% for item in inflowValues %}
+                      {{item}},
+                    {% endfor %}],
+        }]
+      }
+      
 
       var pieChartOptions = {
         rotation: -Math.PI,
@@ -66,21 +108,76 @@
         animation: {
           animateRotate: true,
           animateScale: false
+        },
+        tooltips: {
+          //Make the average
+          callbacks: {
+            label: function(tooltipItem, data) {
+              var allData = data.datasets[tooltipItem.datasetIndex].data;
+              var tooltipLabel = data.labels[tooltipItem.index];
+              var tooltipData = allData[tooltipItem.index];
+              var total = 0;
+              for (var i in allData) {
+                total += allData[i];
+              }
+              var tooltipPercentage = Math.round((tooltipData / total) * 100);        
+              return tooltipLabel + ": " + tooltipPercentage + "%";
+            }
+          }
+        }
+      };
+
+      var lineChartOptions = {
+        legend: {
+          position: 'bottom',
+          //Don't allow the user to hide the chart data
+          onClick: (e) => e.stopPropagation()
         }
       };
 
       // get chart canvas
       var ctx = document.getElementById("chart").getContext("2d");
       
-      var pieChart = new Chart(ctx, {
+      var mChart = new Chart(ctx, {
         type: 'pie',
         data: ageChartData,
         options: pieChartOptions
       });
 
+      /*var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: inflowChartData
+      });*/
+
+      function inflowChart(){
+        mChart.destroy();
+        mChart = new Chart(ctx, {
+          type: 'line',
+          data: inflowChartData,
+          options: lineChartOptions
+        });
+      }
+
+      function userChart(){
+        var button = document.getElementById("chartDataButton");
+
+        mChart.destroy();
+          mChart = new Chart(ctx, {
+          type: 'pie',
+          data: ageChartData,
+          options: pieChartOptions
+        });
+        button.textContent = "Gender chart";
+      }
+
       function manageCharts(){
         var button = document.getElementById("chartDataButton");
-        var previousData = pieChart.config.data;
+        var previousData = mChart.config.data;
+        
+        if(mChart.config.type == 'line'){
+          userChart();
+          return;
+        }
       
         if(previousData == ageChartData){
           button.textContent = "Age chart";
@@ -92,13 +189,15 @@
       }
 
       function showSexData(){
-        pieChart.config.data = sexChartData;
-        pieChart.update();
+        mChart.config.data = sexChartData;
+        mChart.destroyDatasetMeta(0);
+        mChart.update();
       };
 
       function showAgeData(){
-        pieChart.config.data = ageChartData;
-        pieChart.update();
+        mChart.config.data = ageChartData;
+        mChart.destroyDatasetMeta(0);
+        mChart.update();
       };
 
     </script>

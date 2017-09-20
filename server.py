@@ -76,18 +76,16 @@ def businessData():
 		#Sorted from man, woman, other, -18, 18-22, 23-28- 29-35- 36-40, 41-50, 51-60, 61-70, +70
 		#TODO Allow multiple timestamps
 		userInfo = business.getBusinessAgeData(placeId, 1)
+		inflowData = business.getBusinessInflowData(placeId, 15)
 		#userAges = [12, 16, 2, 3, 12, 18, 27, 15, 11, 7, 4, 1]
 
 		return render_template('user_age_chart.html', 
-			agesValues=userInfo[1], 
-			agesLabels=business.pieLabels,
-			sexLabels=business.sexLabels, 
-			sexValues=userInfo[0],
-			legend=business.pieLegend, 
-			ageBgColors=business.ageBgColors, 
-			ageBorderColors=business.ageBorderColors,
-			sexBgColors=business.sexBgColors,
-			sexBorderColors=business.ageBorderColors)
+			usersValues=userInfo, 
+			usersLabels=[business.sexLabels, business.ageLabels],
+			usersBgColors=[business.sexBgColors, business.ageBgColors], 
+			usersBorderColors=[business.sexBorderColors, business.ageBorderColors],
+			inflowValues=inflowData[1],
+			inflowLabels=inflowData[0])
 	else:
 		return "-1"
 

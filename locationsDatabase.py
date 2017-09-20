@@ -130,7 +130,7 @@ def getUserLocationMap(name, latitude, longitude):
 	conn.close()
 	return userMap
 
-def getUsersArround(lat, lng, radius, timestamp):
+def getUsersArround(lat, lng, radius, startTimestamp, endTimestamp):
 	conn = sqlite3.connect('databases/locations.db')
 	c = conn.cursor()
 
@@ -140,12 +140,12 @@ def getUsersArround(lat, lng, radius, timestamp):
 	minLat = lat - 0.00001 * radius
 	maxLng = lng + 0.00001 * radius
 	minLng = lng - 0.00001 * radius
-	t = (timestamp, maxLat, minLat, maxLng, minLng)
+	t = (startTimestamp, endTimestamp, maxLat, minLat, maxLng, minLng)
 
 	users = c.execute("""SELECT user,
         MAX(timestamp) AS timestamp
         FROM locations
-        WHERE timestamp >= ?
+        WHERE timestamp >= ? AND timestamp <= ?
         AND latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
         GROUP BY user""", t)
 
@@ -155,6 +155,32 @@ def getUsersArround(lat, lng, radius, timestamp):
 
 	conn.close()
 	return usersArround
+
+def getNumUsersArround(lat, lng, radius, startTimestamp, endTimestamp):
+	conn = sqlite3.connect('databases/locations.db')
+	c = conn.cursor()
+
+	#1.1m * radius
+	maxLat = lat + 0.00001 * radius
+	minLat = lat - 0.00001 * radius
+	maxLng = lng + 0.00001 * radius
+	minLng = lng - 0.00001 * radius
+	t = (startTimestamp, endTimestamp, maxLat, minLat, maxLng, minLng)
+
+	users = c.execute("""SELECT user,
+        MAX(timestamp) AS timestamp
+        FROM locations
+        WHERE timestamp >= ? AND timestamp <= ?
+        AND latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
+        GROUP BY user""", t)
+
+	numUsers = 0
+	for row in users.fetchall():
+		numUsers += 1
+
+	conn.close()
+	return numUsers
+
 
 	
 
@@ -175,35 +201,3 @@ def getUserDistancesTest():
 #map = getUserLocationMap("Javierd", 40.3591933, -3.6855106)
 #print(map)
 #postUserLocation("tvdh", 40.35141938, -3.68455186, 1504206094638)
-
-
-#DEPRECATED
-def getUserLocationMapDEPRECATED(name, latitude, longitude):
-	userMap = []
-	conn = sqlite3.connect('databases/locations.db')
-	c = conn.cursor()
-
-	timestamp = utils.timeInMillis()
-	#Use just the last 30 minutes of data
-	pastTS = timestamp - 300 * 60 * 1000
-	#Get the points around aprox 1,1 km each side
-	maxLat = latitude + 0.01
-	minLat = latitude - 0.01
-	maxLng = longitude + 0.01
-	minLng = longitude - 0.01
-
-	t = (name, pastTS, maxLat, minLat, maxLng, minLng)
-
-	resultPoints = c.execute("""SELECT latitude, longitude,
-        MAX(timestamp) AS timestamp
-        FROM locations
-        WHERE user != ? AND timestamp >= ?
-        AND latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
-        GROUP BY user""", t)
-
-	for row in resultPoints:
-		point = utils.setUpPlace(row[0], row[1], 10, 'name', 'desc', 'url')
-		userMap.append(point)
-
-	conn.close()
-	return userMap
