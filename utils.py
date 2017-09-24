@@ -4,6 +4,35 @@ import sqlite3
 from random import randint
 from datetime import datetime, timezone, date
 
+users_table_sql = """CREATE TABLE IF NOT EXISTS users(
+							id TEXT PRIMARY KEY,
+							mail TEXT UNIQUE NOT NULL,
+							password TEXT NOT NULL,
+							sex INTEGER NOT NULL,
+							birthdate BLOB NOT NULL,
+							styles TEXT,
+							friends TEXT
+						);"""
+
+locations_table_sql = """CREATE TABLE IF NOT EXISTS locations(
+							id INTEGER PRIMARY KEY AUTOINCREMENT,
+							user TEXT NOT NULL,
+							latitude REAL NOT NULL,
+							longitude REAL NOT NULL,
+							timestamp BLOB NOT NULL,
+							public INTEGER,
+							FOREIGN KEY (user) REFERENCES users(id)
+						);"""
+
+places_table_sql = """CREATE TABLE IF NOT EXISTS places(
+							id TEXT PRIMARY KEY,
+							latitude REAL NOT NULL,
+							longitude REAL NOT NULL,
+							style TEXT,
+							startTimestamp BLOB NOT NULL,
+							endTimestamp BLOB NOT NULL
+						);"""
+
 people = [  [40.359105, -3.685292], #Casa
 			[40.360143, -3.685635], #Calle generosidad
 			[40.358580, -3.684649], #El espinillo
@@ -67,7 +96,8 @@ def locationDistance(lat1, long1, lat2, long2):
 	return distance
 	
 def generateRandomPoints():
-	conn = sqlite3.connect('databases/locations.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	j = 0
@@ -82,8 +112,8 @@ def generateRandomPoints():
 			lat = place[0]+sumLat
 			lon = place[1]+sumLong
 
-			t = ('user'+str(k*20 +i), lat, lon, timestamp, "country1", "city1", 1)
-			c.execute("INSERT INTO locations(user, latitude, longitude, timestamp, country, city, public) VALUES (?, ?, ?, ?, ?, ?, ?)", t)
+			t = ('user'+str(k*20 +i), lat, lon, timestamp, 1)
+			c.execute("INSERT INTO locations(user, latitude, longitude, timestamp, public) VALUES (?, ?, ?, ?, ?)", t)
 			conn.commit()
 			j += 1
 		k += 1
@@ -91,7 +121,8 @@ def generateRandomPoints():
 	conn.close()
 
 def generateUsers():
-	conn = sqlite3.connect('databases/users.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	for i in range(0, 300):
@@ -105,10 +136,20 @@ def generateUsers():
 		birthdate = timeInMillis() - ageInYears*365*24*3600*1000
 
 		t = (name, password, mail, sex, birthdate)
-		c.execute("INSERT INTO users(name, password, mail, sex, birthdate) VALUES (?, ?, ?, ?, ?)", t)
+		c.execute("INSERT INTO users(id, password, mail, sex, birthdate) VALUES (?, ?, ?, ?, ?)", t)
 	
 	conn.commit()
 	conn.close()
 
+def createDatabase():
+	conn = sqlite3.connect('database.db')
+	c = conn.cursor()
+	c.execute(users_table_sql)
+	c.execute(locations_table_sql)
+	c.execute(places_table_sql)
+	conn.commit()
+	conn.close()
+
+#createDatabase()
 #generateRandomPoints()
 #generateUsers()

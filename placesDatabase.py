@@ -4,23 +4,17 @@ import time
 
 GMAPS_API_KEY = 'AIzaSyCPL0mX8XkQC_5UIlx_caVj-TyXsj-yDVo'
 
-create_table_sql = """ CREATE TABLE IF NOT EXISTS places (
-                                        id BLOB NOT NULL PRIMARY KEY UNIQUE,
-                                        latitude REAL NOT NULL,
-                                        longitude REAL NOT NULL,
-                                        style BLOB
-                                    ); """
-
 """try:
-    conn = sqlite3.connect('databases/places.db')
+    conn = sqlite3.connect('database.db')
     c = conn.cursor()
     c.execute(create_table_sql)
 except Error as e:
     print(e)"""
 
 
-def storePlace(place, style, timestamp):
-	conn = sqlite3.connect('databases/places.db')
+def storePlace(place, style, startTimestamp, endTimestamp):
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if the place is already added
@@ -32,8 +26,8 @@ def storePlace(place, style, timestamp):
 		return
 
 	print(place.name)
-	t = (place.place_id, float(place.geo_location['lat']), float(place.geo_location['lng']), style, timestamp)
-	c.execute("INSERT INTO places VALUES (?, ?, ?, ?, ?)", t)
+	t = (place.place_id, float(place.geo_location['lat']), float(place.geo_location['lng']), style, startTimestamp, endTimestamp)
+	c.execute("INSERT INTO places VALUES (?, ?, ?, ?, ?, ?)", t)
 	conn.commit()
 	conn.close()
 	
@@ -49,7 +43,7 @@ def getPlacesAtPointFromGMaps(latitude, longitude):
 
 	for place in query_result.places:
 		# Returned places from a query are place summaries.
-		storePlace(place, '', -1)
+		storePlace(place, '', -1, -1)
 
 	while query_result.has_next_page_token:
 		print("\n")
@@ -58,11 +52,12 @@ def getPlacesAtPointFromGMaps(latitude, longitude):
 	            pagetoken=query_result.next_page_token)
 
 		for place in query_result.places:
-			storePlace(place, '', -1)
+			storePlace(place, '', -1, -1)
 
 def getPlaceLocation(placeId):
 	#Check if place exists and get location
-	conn = sqlite3.connect('databases/places.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if the place is already added
@@ -80,3 +75,4 @@ def getPlaceLocation(placeId):
 	return (lat, lng)
 
 #getPlacesAtPointFromGMaps(40.427491, -3.700221)
+#getPlacesAtPointFromGMaps(40.359237, -3.685373)

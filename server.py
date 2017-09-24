@@ -75,7 +75,7 @@ def businessData():
 		placeId = request.args.get('placeId')
 		#Sorted from man, woman, other, -18, 18-22, 23-28- 29-35- 36-40, 41-50, 51-60, 61-70, +70
 		#TODO Allow multiple timestamps
-		userInfo = business.getBusinessAgeData(placeId, 1)
+		userInfo = business.getBusinessUserData(placeId, 1)
 		inflowData = business.getBusinessInflowData(placeId, 15)
 		#userAges = [12, 16, 2, 3, 12, 18, 27, 15, 11, 7, 4, 1]
 

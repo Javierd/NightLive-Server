@@ -2,10 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>User statistics</title>
-    <!-- import plugin script -->
-    <script src='../static/Chart.min.js'></script>
+    <link rel='StyleSheet' href="{{ url_for('static', filename='css/styles.css') }}" title="Propierties" type='text/css'>
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Roboto: 300, 400' rel='stylesheet' type='text/css'>
 
+    <!-- import scripts -->
+    <script src='../static/Chart.min.js'></script>
     <script type="text/javascript"
       src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <script type="text/javascript">
@@ -14,11 +20,46 @@
  
   </head>
   <body>
-    <!-- bar chart canvas element -->
-    <canvas id="chart" width="600" height="400"></canvas>
-    <button onclick="manageCharts()" id="chartDataButton">Gender chart</button>
-    <button onclick="inflowChart()" id="inflowChartButton">Inflow chart</button>
-    <!--<button href=# id=ajaxButton>Text</button>
+    <center>
+        <header>
+          <h1>Name</h1>
+        </header>
+
+        <content> 
+          <div class="wrapper">
+            <div class=leftBar>
+              <button class="leftBarOption" id="userAge" onclick="userAgeChart()">
+                Users age
+              </button><br/>
+
+              <button class="leftBarOption" id="userGender" onclick="userSexChart()">
+                Users gender
+              </button><br/>
+
+              <button class="leftBarOption" id="placeInflow" onclick="inflowChart()">
+                Place inflow
+              </button><br/>
+
+              <button class="leftBarOption" id="placeDiscounts">
+                Place discounts
+              </button><br/>
+
+              <button class="leftBarOption" id="placeOptions">
+                Place options
+              </button>
+            </div>
+
+            <div class="content">
+              <canvas id="chart"></canvas>
+            </div>
+          </div>
+        </content>
+      </center>
+
+  </body>
+</html>
+
+<!--<button href=# id=ajaxButton>Text</button>
 
     <script type="text/javascript">
       $(function() {
@@ -37,10 +78,10 @@
       });
     </script>-->
 
+<!--Javascript-->
     <script type="text/javascript">
-      // Global parameters:
-      // Do not resize the chart canvas when its container does
-      Chart.defaults.global.responsive = false;
+      Chart.defaults.global.responsive = true;
+      Chart.defaults.global.maintainAspectRatio = false;
 
       // define the age chart data
       var ageChartData = {
@@ -88,7 +129,7 @@
                    "{{label}}",
                   {% endfor %}],
         datasets : [{
-            label: "Number of people along the night",
+            label: "Persons along the night",
             backgroundColor: "rgba(0, 188, 212, 0.4)",
             borderColor: "rgba(0, 188, 212, 0.6)",
             data : [{% for item in inflowValues %}
@@ -150,57 +191,51 @@
       });*/
 
       function inflowChart(){
-        mChart.destroy();
-        mChart = new Chart(ctx, {
-          type: 'line',
-          data: inflowChartData,
-          options: lineChartOptions
-        });
-      }
-
-      function userChart(){
-        var button = document.getElementById("chartDataButton");
-
-        mChart.destroy();
-          mChart = new Chart(ctx, {
-          type: 'pie',
-          data: ageChartData,
-          options: pieChartOptions
-        });
-        button.textContent = "Gender chart";
-      }
-
-      function manageCharts(){
-        var button = document.getElementById("chartDataButton");
-        var previousData = mChart.config.data;
-        
+        //Let the user refresh the data
         if(mChart.config.type == 'line'){
-          userChart();
-          return;
-        }
-      
-        if(previousData == ageChartData){
-          button.textContent = "Age chart";
-          showSexData();
-        }else if(previousData == sexChartData){
-          button.textContent = "Gender chart";
-          showAgeData();
+          mChart.config.data == inflowChartData;
+          mChart.destroyDatasetMeta(0);
+          mChart.update();
+        }else{
+          mChart.destroy();
+          mChart = new Chart(ctx, {
+            type: 'line',
+            data: inflowChartData,
+            options: lineChartOptions
+          });
         }
       }
 
-      function showSexData(){
-        mChart.config.data = sexChartData;
-        mChart.destroyDatasetMeta(0);
-        mChart.update();
+      function userSexChart(){
+        //Let the user refresh the data
+        if(mChart.config.type == 'pie'){
+          mChart.config.data = sexChartData;
+          mChart.destroyDatasetMeta(0);
+          mChart.update();
+        }else{
+          mChart.destroy();
+          mChart = new Chart(ctx, {
+            type: 'pie',
+            data: sexChartData,
+            options: pieChartOptions
+          });
+        }
       };
 
-      function showAgeData(){
-        mChart.config.data = ageChartData;
-        mChart.destroyDatasetMeta(0);
-        mChart.update();
+      function userAgeChart(){
+        //Let the user refresh the data
+        if(mChart.config.type == 'pie'){
+          mChart.config.data = ageChartData;
+          mChart.destroyDatasetMeta(0);
+          mChart.update();
+        }else{
+          mChart.destroy();
+          mChart = new Chart(ctx, {
+            type: 'pie',
+            data: ageChartData,
+            options: pieChartOptions
+          });
+        }
       };
 
     </script>
-
-  </body>
-</html>

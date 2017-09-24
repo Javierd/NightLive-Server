@@ -1,12 +1,12 @@
 import sqlite3
 
-
 def userSignIn(mail, password):
 	#0 = OK, 1 = Wrong user name, 2 = wrong password
-	conn = sqlite3.connect('databases/users.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
-	c.execute("SELECT password, name FROM users WHERE mail = ?", (mail,))
+	c.execute("SELECT password, id FROM users WHERE mail = ?", (mail,))
 	dbPass = c.fetchone()
 	if(dbPass == None):
 		conn.close()
@@ -21,11 +21,13 @@ def userSignIn(mail, password):
 
 def userSignUp(name, password, mail, sex, birthdate, styles):
 	#0 = OK, 1 = username in use, 2 = email in use, 3 = Wrong email, 4 = other error
-	conn = sqlite3.connect('databases/users.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if user name or email are already used
-	c.execute("SELECT id FROM users WHERE name = ?", (name,))
+	c.execute("SELECT * FROM users WHERE id = ?", (name,))
+	print(c.fetchall())
 	if(len(c.fetchall()) != 0):
 		return 1
 	c.execute("SELECT id FROM users WHERE mail = ?", (mail,))
@@ -33,14 +35,15 @@ def userSignUp(name, password, mail, sex, birthdate, styles):
 		return 2
 
 	t = (name, password, mail, sex, birthdate, styles)
-	c.execute("INSERT INTO users(name, password, mail, sex, birthdate, styles) VALUES (?, ?, ?, ?, ?, ?)", t)
+	c.execute("INSERT INTO users(id, password, mail, sex, birthdate, styles) VALUES (?, ?, ?, ?, ?, ?)", t)
 	conn.commit()
 	conn.close()
 	return 0
 
 def userCheckMail(mail):
 	#0 = OK, 1 = Wrong user name, 2 = wrong password
-	conn = sqlite3.connect('databases/users.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if email is already used
@@ -55,11 +58,12 @@ def userCheckMail(mail):
 
 def userCheckName(name):
 	#0 = OK, 1 = Wrong user name, 2 = wrong password
-	conn = sqlite3.connect('databases/users.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if user name is already used
-	c.execute("SELECT name FROM users WHERE name = ?", (name,))
+	c.execute("SELECT id FROM users WHERE id = ?", (name,))
 	dbPass = c.fetchone()
 	if(dbPass == None):
 		conn.close()
@@ -70,13 +74,15 @@ def userCheckName(name):
 	#Used username
 	return 1
 
+#DEPRECATED
 def getUsersData(usersIds):
 	usersData = []
-	conn = sqlite3.connect('databases/users.db')
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	for userId in usersIds:
-		c.execute("SELECT sex, birthdate, styles FROM users where name = ?", (userId,))
+		c.execute("SELECT sex, birthdate, styles FROM users where id = ?", (userId,))
 		user = c.fetchone()
 		if user == None:
 			continue

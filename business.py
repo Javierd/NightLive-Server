@@ -1,3 +1,5 @@
+import sqlite3
+import time
 import userDatabase as userDB
 import locationsDatabase as locationsDB
 import placesDatabase as placesDB
@@ -34,8 +36,106 @@ sexBorderColors = ['rgba(0, 0, 0, 0.7)',
                 	'rgba(255, 206, 86, 0.7)']
 
 #TODO change startTime and endTime wih the local opening and closing hours
+def getBusinessUserData(placeId, days):
+	dateTS = utils.timeInMillis()
+	usersInfo = []
+	usersAge = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+	usersSex = [0, 0, 0]
 
-def getBusinessAgeData(placeId, days):
+	#TODO Allow multiple timestamps
+	startTimestamp = dateTS - days*24*3600*1000
+
+	location = placesDB.getPlaceLocation(placeId)
+	if(location == None):
+		return "The place doesn't exists"
+
+	#Get all the users that were arround that location since the timestamp (24h)
+	#TODO Change the 100m number
+
+	lat = location[0]
+	lng = location[1]
+	radius = 100
+	#1.1m * radius
+	maxLat = lat + 0.00001 * radius
+	minLat = lat - 0.00001 * radius
+	maxLng = lng + 0.00001 * radius
+	minLng = lng - 0.00001 * radius
+	t = (startTimestamp, dateTS, maxLat, minLat, maxLng, minLng)
+
+	conn = sqlite3.connect('database.db')
+	c = conn.cursor()
+	c.execute("""SELECT sex, birthdate, styles FROM users 
+					WHERE id IN (
+						SELECT user
+				        FROM locations
+				        WHERE timestamp >= ? AND timestamp <= ?
+				        AND latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
+				        GROUP BY user)""", t)
+
+	#From each user, get the age and sort from -18, 18-22, 23-28- 29-35- 36-40, 41-50, 51-60, 61-70, +70
+	for user in c.fetchall():
+		age = int ((dateTS - user[1])/(1000 * 3600 * 24 *365))
+
+		#Sex
+		if user[0] == 0:
+			usersSex[0] +=1
+		elif user[0] == 1:
+			usersSex[1] +=1
+		elif user[0] == 2:
+			usersSex[2] +=1
+
+		#Ages
+		if age > 70:
+			usersAge[8] += 1
+		elif age > 60:
+			usersAge[7] += 1
+		elif age > 50:
+			usersAge[6] += 1
+		elif age > 40:
+			usersAge[5] += 1
+		elif age > 35:
+			usersAge[4] += 1
+		elif age > 29:
+			usersAge[3] += 1
+		elif age > 23:
+			usersAge[2] += 1
+		elif age > 18:
+			usersAge[1] += 1
+		else:
+			usersAge[0] += 1
+
+	usersInfo.append(usersSex)
+	usersInfo.append(usersAge)
+
+	c.close()
+
+	return usersInfo
+
+
+def getBusinessInflowData(placeId, days):
+	nowTimestamp = utils.dayInMillis()
+	inflowDataValues = []
+	inflowDataLabels = []
+
+	location = placesDB.getPlaceLocation(placeId)
+	if(location == None):
+		return "The place doesn't exists"
+
+	#Get the number of users that were arround that location between the two timestamps
+	#TODO Change the 100m number
+	for i in reversed(range(0, days+1)):
+		startTimestamp = nowTimestamp - (i+1)*24*3600*1000 
+		endTimestamp = nowTimestamp - i*24*3600*1000 
+		numUsers = locationsDB.getNumUsersArround(location[0], location[1], 100, startTimestamp, endTimestamp)
+		dateStr = utils.millisToDate(startTimestamp, "%d/%m/%Y")
+		inflowDataValues.append(numUsers)
+		inflowDataLabels.append(dateStr)
+
+	return [inflowDataLabels, inflowDataValues]
+
+
+#DEPRECATED
+def getBusinessUserDataDEPRECATED(placeId, days):
 	dateTS = utils.timeInMillis()
 	usersInfo = []
 	usersAge = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -58,11 +158,11 @@ def getBusinessAgeData(placeId, days):
 		age = int ((dateTS - user[1])/(1000 * 3600 * 24 *365))
 
 		#Sex
-		if user[0] == '0':
+		if user[0] == 0:
 			usersSex[0] +=1
-		elif user[0] == '1':
+		elif user[0] == 1:
 			usersSex[1] +=1
-		elif user[0] == '2':
+		elif user[0] == 2:
 			usersSex[2] +=1
 
 		#Ages
@@ -89,24 +189,3 @@ def getBusinessAgeData(placeId, days):
 	usersInfo.append(usersAge)
 
 	return usersInfo
-
-def getBusinessInflowData(placeId, days):
-	nowTimestamp = utils.dayInMillis()
-	inflowDataValues = []
-	inflowDataLabels = []
-
-	location = placesDB.getPlaceLocation(placeId)
-	if(location == None):
-		return "The place doesn't exists"
-
-	#Get the number of users that were arround that location between the two timestamps
-	#TODO Change the 100m number
-	for i in reversed(range(0, days+1)):
-		startTimestamp = nowTimestamp - (i+1)*24*3600*1000 
-		endTimestamp = nowTimestamp - i*24*3600*1000 
-		numUsers = locationsDB.getNumUsersArround(location[0], location[1], 100, startTimestamp, endTimestamp)
-		dateStr = utils.millisToDate(startTimestamp, "%d/%m/%Y")
-		inflowDataValues.append(numUsers)
-		inflowDataLabels.append(dateStr)
-
-	return [inflowDataLabels, inflowDataValues]
