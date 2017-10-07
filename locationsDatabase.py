@@ -5,6 +5,7 @@ from threading import Thread
 import utils
 import dbscan
 import placesDatabase as placesDB
+import userDatabase as userDB
 
 #Distance in meters
 minDist = 20
@@ -40,15 +41,14 @@ def storePlacesIdArroundUser(latitude, longitude):
 	else:
 		conn.close()
 
-def postUserLocation(name, latitude, longitude, public):
-	#0 = OK, 1 = Wrong user name,
+def postUserLocation(name, token, latitude, longitude, public):
+	#0 = OK, 1 = Wrong user
 	conn = sqlite3.connect('database.db')
 	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
-	#Check if the username exist
-	#TODO do a real login. We'd need to store the password on the phone
-	#login = userDB.userSignIn(name, pass)
+	if(userDB.authenticateUser(name, token) == False):
+		return 1
 
 	#Store the location
 	timestamp = utils.timeInMillis()
@@ -62,11 +62,15 @@ def postUserLocation(name, latitude, longitude, public):
 
 	return 0
 
-def getUserLocationMap(name, latitude, longitude):
+def getUserLocationMap(name, token, latitude, longitude):
+	#1=Wrong user
 	userMap = []
 	conn = sqlite3.connect('database.db')
 	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
+
+	if(userDB.authenticateUser(name, token) == False):
+		return 1
 
 	timestamp = utils.timeInMillis()
 	#Use just the last 30 minutes of data
@@ -101,8 +105,6 @@ def getUserLocationMap(name, latitude, longitude):
 	for clusterPoint in dbscanResult:
 		#print(clusterPoint)
 		#Get the places arround
-		placesConn = sqlite3.connect('database.db')
-		placesC = placesConn.cursor()
 		radius = utils.getRadius(clusterPoint[2])
 
 		#TODO Change the radius
@@ -113,7 +115,7 @@ def getUserLocationMap(name, latitude, longitude):
 		minLng = clusterPoint[1] - deltaRad
 
 		t = (maxLat, minLat, maxLng, minLng)
-		placesArround = placesC.execute("SELECT id, latitude, longitude FROM places WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?", t)
+		placesArround = c.execute("SELECT id, latitude, longitude FROM places WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?", t)
 		places = []
 		for row in placesArround:
 			#print("\t"+str(row))
@@ -123,8 +125,6 @@ def getUserLocationMap(name, latitude, longitude):
 		if len(places) > 0 : 
 			point = utils.setUpPoint(clusterPoint[0], clusterPoint[1], radius, places)
 			userMap.append(point)
-
-		placesConn.close()
 
 	conn.close()
 	return userMap

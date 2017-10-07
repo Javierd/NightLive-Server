@@ -14,29 +14,33 @@ def index():
 def location():
 	if request.method == 'POST':
 
-		if 'lat' in request.args and 'long' in request.args and 'user' in request.args and 'public' in request.args:
+		if 'lat' in request.args and 'long' in request.args and 'user' in request.args and 'public' in request.args and 'token' in request.args:
 
 			latitude = float(request.args.get('lat'))
 			longitude = float(request.args.get('long'))
 			user = request.args.get('user')
+			token = request.args.get('token')
 			public = int(request.args.get('public'))
 
-			result = locationsDB.postUserLocation(user, latitude, longitude, public)
+			result = locationsDB.postUserLocation(user, token, latitude, longitude, public)
 			return '"'+str(result)+'"'
 		else:
-			return "-1"
+			return "-1", 400
 	else:
 
-		if 'lat' in request.args and 'long' in request.args and 'user' in request.args:
+		if 'lat' in request.args and 'long' in request.args and 'user' in request.args and 'token' in request.args:
 
 			latitude = float(request.args.get('lat'))
 			longitude = float(request.args.get('long'))
 			user = request.args.get('user')
+			token = request.args.get('token')
 
-			userMap = locationsDB.getUserLocationMap(user, latitude, longitude)
+			userMap = locationsDB.getUserLocationMap(user, token, latitude, longitude)
+			if(userMap == 1):
+				return "1", 401 #Unauthorized
 			return jsonify({'points': userMap})
 		else:
-			return 'La direccion no esta correctamente formada'
+			return 'La direccion no esta correctamente formada', 400
 
 @server.route('/user', methods=['GET', 'POST'])
 def user():
@@ -53,9 +57,9 @@ def user():
 
 			#TODO comprobar el email y mandar un error si no existe
 			result = userDB.userSignUp(name, password, mail, sex, birthdate, styles)
-			return '"'+str(result)+'"'
+			return jsonify({'user': result})
 		else:
-			return "-1"
+			return jsonify({'user': utils.setUpUserInfo(-1, "None", "None")})
 	else:
 
 		if 'mail' in request.args and 'pass' in request.args:
@@ -64,9 +68,9 @@ def user():
 			password = request.args.get('pass')
 
 			result = userDB.userSignIn(mail, password)
-			return '"'+str(result)+'"'
+			return jsonify({'user': result})
 		else:
-			return "-1"
+			return jsonify({'user': utils.setUpUserInfo(-1, "None", "None")})
 
 @server.route('/business', methods=['GET'])
 def businessData():

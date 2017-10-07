@@ -1,4 +1,7 @@
 import sqlite3
+import bcrypt
+import hashlib
+import utils
 
 def userSignIn(mail, password):
 	#0 = OK, 1 = Wrong user name, 2 = wrong password
@@ -6,18 +9,18 @@ def userSignIn(mail, password):
 	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
-	c.execute("SELECT password, id FROM users WHERE mail = ?", (mail,))
+	c.execute("SELECT password, token, id FROM users WHERE mail = ?", (mail.lower(),))
 	dbPass = c.fetchone()
 	if(dbPass == None):
 		conn.close()
-		return 1
+		return utils.setUpUserInfo(1, "None", "None")
 
-	if(dbPass[0] != password):
+	if not bcrypt.checkpw(password.encode('utf8'), dbPass[0]):
 		conn.close()
-		return 2
+		return utils.setUpUserInfo(2, "None", "None")
 
 	conn.close()
-	return dbPass[1]
+	return utils.setUpUserInfo(0, dbPass[2], dbPass[1])
 
 def userSignUp(name, password, mail, sex, birthdate, styles):
 	#0 = OK, 1 = username in use, 2 = email in use, 3 = Wrong email, 4 = other error
@@ -26,19 +29,41 @@ def userSignUp(name, password, mail, sex, birthdate, styles):
 	c = conn.cursor()
 
 	#Check if user name or email are already used
-	c.execute("SELECT * FROM users WHERE id = ?", (name,))
-	print(c.fetchall())
+	c.execute("SELECT * FROM users WHERE id = ?", (name.lower(),))
 	if(len(c.fetchall()) != 0):
-		return 1
-	c.execute("SELECT id FROM users WHERE mail = ?", (mail,))
+		return utils.setUpUserInfo(1, "None", "None")
+	c.execute("SELECT id FROM users WHERE mail = ?", (mail.lower(),))
 	if(len(c.fetchall()) != 0):
-		return 2
+		return utils.setUpUserInfo(2, "None", "None")
 
-	t = (name, password, mail, sex, birthdate, styles)
-	c.execute("INSERT INTO users(id, password, mail, sex, birthdate, styles) VALUES (?, ?, ?, ?, ?, ?)", t)
+	hashedPass = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+	token = hashlib.sha256((name+password).encode('utf8')).hexdigest()
+
+
+	t = (name.lower(), hashedPass, mail.lower(), str(token), sex, birthdate, styles)
+	c.execute("INSERT INTO users(id, password, mail, token, sex, birthdate, styles) VALUES (?, ?, ?, ?, ?, ?, ?)", t)
 	conn.commit()
 	conn.close()
-	return 0
+	return utils.setUpUserInfo(0, name.lower(), token.lower())
+
+def authenticateUser(name, token):
+	#True = OK, False = Wrong user name/ token
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
+	c = conn.cursor()
+
+	c.execute("SELECT token FROM users WHERE id = ?", (name.lower(),))
+	dbPass = c.fetchone()
+	if(dbPass == None):
+		conn.close()
+		return False
+
+	if(token != dbPass[0]):
+		conn.close()
+		return False
+
+	conn.close()
+	return True
 
 def userCheckMail(mail):
 	#0 = OK, 1 = Wrong user name, 2 = wrong password
@@ -47,7 +72,7 @@ def userCheckMail(mail):
 	c = conn.cursor()
 
 	#Check if email is already used
-	c.execute("SELECT mail FROM users WHERE mail = ?", (mail,))
+	c.execute("SELECT mail FROM users WHERE mail = ?", (mail.lower(),))
 	dbPass = c.fetchone()
 	if(dbPass == None):
 		conn.close()
@@ -63,7 +88,7 @@ def userCheckName(name):
 	c = conn.cursor()
 
 	#Check if user name is already used
-	c.execute("SELECT id FROM users WHERE id = ?", (name,))
+	c.execute("SELECT id FROM users WHERE id = ?", (name.lower(),))
 	dbPass = c.fetchone()
 	if(dbPass == None):
 		conn.close()

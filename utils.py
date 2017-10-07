@@ -1,6 +1,7 @@
 import time
 import math
 import sqlite3
+import bcrypt
 from random import randint
 from datetime import datetime, timezone, date
 
@@ -31,6 +32,15 @@ places_table_sql = """CREATE TABLE IF NOT EXISTS places(
 							style TEXT,
 							startTimestamp BLOB NOT NULL,
 							endTimestamp BLOB NOT NULL
+						);"""
+
+business_table_sql = """CREATE TABLE IF NOT EXISTS business(
+							id INTEGER PRIMARY KEY AUTOINCREMENT,
+							placeId TEXT NOT NULL,
+							mail TEXT UNIQUE NOT NULL,
+							password TEXT NOT NULL,
+							token TEXT,
+							FOREIGN KEY (placeId) REFERENCES places(id)
 						);"""
 
 people = [  [40.359105, -3.685292], #Casa
@@ -84,6 +94,14 @@ def setUpGMapPlace(id, latitude, longitude):
 	}
 	return place
 
+def setUpUserInfo(result, name, token):
+	user = {
+		'result' : result,
+		'name' : name,
+		'token' : token
+	}
+	return user
+
 def locationDistance(lat1, long1, lat2, long2):
 	#delta 0.0001 = 11m
 	deltaLat = lat2 - lat1
@@ -134,9 +152,9 @@ def generateUsers():
 			sex = 1
 		ageInYears = randint(16, 75)
 		birthdate = timeInMillis() - ageInYears*365*24*3600*1000
-
-		t = (name, password, mail, sex, birthdate)
-		c.execute("INSERT INTO users(id, password, mail, sex, birthdate) VALUES (?, ?, ?, ?, ?)", t)
+		token = "123456789ABCDEF"
+		t = (name, password, mail, sex, birthdate, token)
+		c.execute("INSERT INTO users(id, password, mail, sex, birthdate, token) VALUES (?, ?, ?, ?, ?, ?)", t)
 	
 	conn.commit()
 	conn.close()

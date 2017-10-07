@@ -35,6 +35,51 @@ sexBorderColors = ['rgba(0, 0, 0, 0.7)',
                 	'rgba(0, 0, 0, 0.7)',
                 	'rgba(255, 206, 86, 0.7)']
 
+
+def businessSignIn(mail, password):
+	#0 = OK, 1 = Wrong user name, 2 = wrong password
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
+	c = conn.cursor()
+
+	c.execute("SELECT password, token, id FROM business WHERE mail = ?", (mail,))
+	dbPass = c.fetchone()
+	if(dbPass == None):
+		conn.close()
+		1
+
+	if not bcrypt.checkpw(password.encode('utf8'), dbPass[0]):
+		conn.close()
+		2
+
+	conn.close()
+	return 0
+
+def businessSignUp(place, password, mail):
+	#0 = OK, 1 = username in use, 2 = email in use, 3 = Wrong email, 4 = other error
+	conn = sqlite3.connect('database.db')
+	conn.execute("PRAGMA foreign_keys = 1")
+	c = conn.cursor()
+
+	#Check if user name or email are already used
+	c.execute("SELECT * FROM business WHERE id = ?", (name,))
+	if(len(c.fetchall()) != 0):
+		return 1
+	c.execute("SELECT id FROM business WHERE mail = ?", (mail,))
+	if(len(c.fetchall()) != 0):
+		return 2
+
+	hashedPass = bcrypt.hashpw(password.encode('utf8'), bcrypt.gensalt())
+	token = hashlib.sha256((name+password).encode('utf8')).hexdigest()
+
+
+	t = (place, mail, hashedPass, str(token))
+	c.execute("INSERT INTO business(placeId, mail, password, token) VALUES (?, ?, ?, ?)", t)
+	conn.commit()
+	conn.close()
+	return 0
+
+
 #TODO change startTime and endTime wih the local opening and closing hours
 def getBusinessUserData(placeId, days):
 	dateTS = utils.timeInMillis()
