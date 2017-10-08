@@ -1,4 +1,3 @@
-import sqlite3
 import time
 import numpy as np
 from threading import Thread
@@ -12,9 +11,7 @@ minDist = 20
 minPoints = 10
 
 #public in database: 0=hidden 1=public for friends, 2=everybody
-def storePlacesIdArroundUser(latitude, longitude):
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
+def storePlacesIdArroundUser(conn, latitude, longitude):
 	c = conn.cursor()
 
 	#Get the points around aprox 110 m each side
@@ -35,41 +32,33 @@ def storePlacesIdArroundUser(latitude, longitude):
 
 	if(c.fetchone == None):
 		#Update / get the places in a separate thread
-		conn.close()
-		thread = Thread(target = placesDB.getPlacesAtPointFromGMaps, args = (latitude, longitude))
+		thread = Thread(target = placesDB.getPlacesAtPointFromGMaps, args = (conn, latitude, longitude))
 		thread.start()	
-	else:
-		conn.close()
 
-def postUserLocation(name, token, latitude, longitude, public):
+def postUserLocation(conn, name, token, latitude, longitude, public):
 	#0 = OK, 1 = Wrong user
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
-	if(userDB.authenticateUser(name, token) == False):
+	if(userDB.authenticateUser(conn, name, token) == False):
 		return 1
 
 	#Store the location
 	timestamp = utils.timeInMillis()
 
-	t = (name, latitude, longitude, timestamp, public)
+	t = (name.lower(), latitude, longitude, timestamp, public)
 	c.execute("INSERT INTO locations(user, latitude, longitude, timestamp, public) VALUES (?, ?, ?, ?, ?)", t)
 	conn.commit()
-	conn.close()
 
-	storePlacesIdArroundUser(latitude, longitude)
+	storePlacesIdArroundUser(conn, latitude, longitude)
 
 	return 0
 
-def getUserLocationMap(name, token, latitude, longitude):
+def getUserLocationMap(conn, name, token, latitude, longitude):
 	#1=Wrong user
 	userMap = []
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
-	if(userDB.authenticateUser(name, token) == False):
+	if(userDB.authenticateUser(conn, name, token) == False):
 		return 1
 
 	timestamp = utils.timeInMillis()
@@ -81,7 +70,7 @@ def getUserLocationMap(name, token, latitude, longitude):
 	maxLng = longitude + 0.01
 	minLng = longitude - 0.01
 
-	t = (name, pastTS, maxLat, minLat, maxLng, minLng)
+	t = (name.lower(), pastTS, maxLat, minLat, maxLng, minLng)
 
 	resultPoints = c.execute("""SELECT latitude, longitude,
         MAX(timestamp) AS timestamp
@@ -126,8 +115,39 @@ def getUserLocationMap(name, token, latitude, longitude):
 			point = utils.setUpPoint(clusterPoint[0], clusterPoint[1], radius, places)
 			userMap.append(point)
 
-	conn.close()
 	return userMap
+
+def getNumUsersArround(conn, lat, lng, radius, startTimestamp, endTimestamp):
+	c = conn.cursor()
+
+	#1.1m * radius
+	maxLat = lat + 0.00001 * radius
+	minLat = lat - 0.00001 * radius
+	maxLng = lng + 0.00001 * radius
+	minLng = lng - 0.00001 * radius
+	t = (startTimestamp, endTimestamp, maxLat, minLat, maxLng, minLng)
+
+	users = c.execute("""SELECT user
+        FROM locations
+        WHERE timestamp >= ? AND timestamp <= ?
+        AND latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
+        GROUP BY user""", t)
+
+	numUsers = 0
+	for row in users.fetchall():
+		numUsers += 1
+
+	return numUsers	
+
+def getUserDistancesTest(conn):
+	c = conn.cursor()
+
+	resultPoints = c.execute("SELECT * FROM locations")
+
+	point = resultPoints.fetchone()
+	for row in resultPoints:
+		dist = utils.locationDistance(point[2], point[3], row[2], row[3])
+		print("Distance: " + str(dist))
 
 #DEPRECATED
 def getUsersArround(lat, lng, radius, startTimestamp, endTimestamp):
@@ -155,48 +175,6 @@ def getUsersArround(lat, lng, radius, startTimestamp, endTimestamp):
 
 	conn.close()
 	return usersArround
-
-def getNumUsersArround(lat, lng, radius, startTimestamp, endTimestamp):
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
-	c = conn.cursor()
-
-	#1.1m * radius
-	maxLat = lat + 0.00001 * radius
-	minLat = lat - 0.00001 * radius
-	maxLng = lng + 0.00001 * radius
-	minLng = lng - 0.00001 * radius
-	t = (startTimestamp, endTimestamp, maxLat, minLat, maxLng, minLng)
-
-	users = c.execute("""SELECT user
-        FROM locations
-        WHERE timestamp >= ? AND timestamp <= ?
-        AND latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ?
-        GROUP BY user""", t)
-
-	numUsers = 0
-	for row in users.fetchall():
-		numUsers += 1
-
-	conn.close()
-	return numUsers
-
-
-	
-
-def getUserDistancesTest():
-	conn = sqlite3.connect('databases.db')
-	conn.execute("PRAGMA foreign_keys = 1")
-	c = conn.cursor()
-
-	resultPoints = c.execute("SELECT * FROM locations")
-
-	point = resultPoints.fetchone()
-	for row in resultPoints:
-		dist = utils.locationDistance(point[2], point[3], row[2], row[3])
-		print("Distance: " + str(dist))
-
-	conn.close()
 
 #getUserDistancesTest()
 #map = getUserLocationMap("Javierd", 40.3591933, -3.6855106)

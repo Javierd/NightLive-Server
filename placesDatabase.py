@@ -1,4 +1,3 @@
-import sqlite3
 from googleplaces import GooglePlaces, types, lang
 import time
 
@@ -12,9 +11,7 @@ except Error as e:
     print(e)"""
 
 
-def storePlace(place, style, startTimestamp, endTimestamp):
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
+def storePlace(conn, place, style, startTimestamp, endTimestamp):
 	c = conn.cursor()
 
 	#Check if the place is already added
@@ -22,18 +19,16 @@ def storePlace(place, style, startTimestamp, endTimestamp):
 	dbPlace = c.fetchone()
 	if(dbPlace != None):
 		#The place is already added
-		conn.close()
 		return
 
 	print(place.name)
 	t = (place.place_id, float(place.geo_location['lat']), float(place.geo_location['lng']), style, startTimestamp, endTimestamp)
 	c.execute("INSERT INTO places VALUES (?, ?, ?, ?, ?, ?)", t)
 	conn.commit()
-	conn.close()
 	
 	return
 
-def getPlacesAtPointFromGMaps(latitude, longitude):
+def getPlacesAtPointFromGMaps(conn, latitude, longitude):
 	google_places = GooglePlaces(GMAPS_API_KEY)
 	query_result = google_places.nearby_search(
 	        location= str(latitude)+', '+str(longitude), keyword='',
@@ -52,12 +47,10 @@ def getPlacesAtPointFromGMaps(latitude, longitude):
 	            pagetoken=query_result.next_page_token)
 
 		for place in query_result.places:
-			storePlace(place, '', -1, -1)
+			storePlace(conn, place, '', -1, -1)
 
-def getPlaceLocation(placeId):
+def getPlaceLocation(conn, placeId):
 	#Check if place exists and get location
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if the place is already added
@@ -65,13 +58,11 @@ def getPlaceLocation(placeId):
 	dbPlace = c.fetchone()
 	if(dbPlace == None):
 		#The place is already added
-		conn.close()
 		return None
 
 	lat = dbPlace[0]
 	lng = dbPlace[1]
 
-	conn.close()
 	return (lat, lng)
 
 #getPlacesAtPointFromGMaps(40.427491, -3.700221)

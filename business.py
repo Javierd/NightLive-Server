@@ -1,4 +1,3 @@
-import sqlite3
 import time
 import userDatabase as userDB
 import locationsDatabase as locationsDB
@@ -36,29 +35,22 @@ sexBorderColors = ['rgba(0, 0, 0, 0.7)',
                 	'rgba(255, 206, 86, 0.7)']
 
 
-def businessSignIn(mail, password):
+def businessSignIn(conn, mail, password):
 	#0 = OK, 1 = Wrong user name, 2 = wrong password
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	c.execute("SELECT password, token, id FROM business WHERE mail = ?", (mail,))
 	dbPass = c.fetchone()
 	if(dbPass == None):
-		conn.close()
 		1
 
 	if not bcrypt.checkpw(password.encode('utf8'), dbPass[0]):
-		conn.close()
 		2
 
-	conn.close()
 	return 0
 
-def businessSignUp(place, password, mail):
+def businessSignUp(conn, place, password, mail):
 	#0 = OK, 1 = username in use, 2 = email in use, 3 = Wrong email, 4 = other error
-	conn = sqlite3.connect('database.db')
-	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
 	#Check if user name or email are already used
@@ -76,12 +68,11 @@ def businessSignUp(place, password, mail):
 	t = (place, mail, hashedPass, str(token))
 	c.execute("INSERT INTO business(placeId, mail, password, token) VALUES (?, ?, ?, ?)", t)
 	conn.commit()
-	conn.close()
 	return 0
 
 
 #TODO change startTime and endTime wih the local opening and closing hours
-def getBusinessUserData(placeId, days):
+def getBusinessUserData(conn, placeId, days):
 	dateTS = utils.timeInMillis()
 	usersInfo = []
 	usersAge = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -90,7 +81,7 @@ def getBusinessUserData(placeId, days):
 	#TODO Allow multiple timestamps
 	startTimestamp = dateTS - days*24*3600*1000
 
-	location = placesDB.getPlaceLocation(placeId)
+	location = placesDB.getPlaceLocation(conn, placeId)
 	if(location == None):
 		return "The place doesn't exists"
 
@@ -107,7 +98,6 @@ def getBusinessUserData(placeId, days):
 	minLng = lng - 0.00001 * radius
 	t = (startTimestamp, dateTS, maxLat, minLat, maxLng, minLng)
 
-	conn = sqlite3.connect('database.db')
 	c = conn.cursor()
 	c.execute("""SELECT sex, birthdate, styles FROM users 
 					WHERE id IN (
@@ -152,17 +142,15 @@ def getBusinessUserData(placeId, days):
 	usersInfo.append(usersSex)
 	usersInfo.append(usersAge)
 
-	c.close()
-
 	return usersInfo
 
 
-def getBusinessInflowData(placeId, days):
+def getBusinessInflowData(conn, placeId, days):
 	nowTimestamp = utils.dayInMillis()
 	inflowDataValues = []
 	inflowDataLabels = []
 
-	location = placesDB.getPlaceLocation(placeId)
+	location = placesDB.getPlaceLocation(conn, placeId)
 	if(location == None):
 		return "The place doesn't exists"
 
@@ -171,7 +159,7 @@ def getBusinessInflowData(placeId, days):
 	for i in reversed(range(0, days+1)):
 		startTimestamp = nowTimestamp - (i+1)*24*3600*1000 
 		endTimestamp = nowTimestamp - i*24*3600*1000 
-		numUsers = locationsDB.getNumUsersArround(location[0], location[1], 100, startTimestamp, endTimestamp)
+		numUsers = locationsDB.getNumUsersArround(conn, location[0], location[1], 100, startTimestamp, endTimestamp)
 		dateStr = utils.millisToDate(startTimestamp, "%d/%m/%Y")
 		inflowDataValues.append(numUsers)
 		inflowDataLabels.append(dateStr)
