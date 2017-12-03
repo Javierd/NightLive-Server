@@ -46,8 +46,6 @@ def authenticateUser(conn, name, token):
 	if(dbPass == None):
 		return False
 
-	print(token, dbPass[0])
-
 	if(token != dbPass[0]):
 		return False
 
