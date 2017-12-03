@@ -115,6 +115,38 @@ def businessData():
 	else:
 		return "-1", 400
 
+@server.route('/business/flyers', methods=['GET', 'POST'])
+def flyers():
+	if request.method == 'POST':
+
+		if 'placeId' in request.args and 'token' in request.args and 'price' in request.args and 'imageUrl' in request.args and 'qrUrl' in request.args and 'info' in request.args and 'startTimestamp' in request.args and 'endTimestamp' in request.args:
+
+			placeId = request.args.get('placeId')
+			token = request.args.get('token')
+			price = request.args.get('price')
+			imageUrl = request.args.get('imageUrl')
+			qrUrl = request.args.get('qrUrl')
+			info = request.args.get('info')
+			startTimestamp = request.args.get('startTimestamp')
+			endTimestamp = request.args.get('endTimestamp')
+
+			result = business.businessPostFlyer(get_db(), placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
+			if(result == 1):
+				return "1", 401 #Unauthorized
+
+			return '"'+str(result)+'"'
+		else:
+			return "-1", 400
+
+	else:
+		if 'placeId' in request.args:
+
+			placeId = request.args.get('placeId')
+			result = business.businessGetUsersFlyers(get_db(), placeId)
+			return jsonify({'flyers': result})
+		else:
+			return "-1", 400
+
 @server.route('/user/check', methods=['GET'])
 def userCheck():
 	if 'mail' in request.args:

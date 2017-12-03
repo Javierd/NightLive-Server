@@ -43,6 +43,19 @@ business_table_sql = """CREATE TABLE IF NOT EXISTS business(
 							FOREIGN KEY (placeId) REFERENCES places(id)
 						);"""
 
+flyers_table_sql = """CREATE TABLE IF NOT EXISTS flyers(
+							id INTEGER PRIMARY KEY AUTOINCREMENT,
+							placeId TEXT NOT NULL,
+							price REAL NOT NULL,
+							image TEXT,
+							qr TEXT,
+							info TEXT,
+							startTimestamp BLOB,
+							endTimestamp BLOB,
+							FOREIGN KEY (placeId) REFERENCES places(id)
+						);"""
+
+
 people = [  [40.359105, -3.685292], #Casa
 			[40.360143, -3.685635], #Calle generosidad
 			[40.358580, -3.684649], #El espinillo
@@ -101,6 +114,17 @@ def setUpUserInfo(result, name, token):
 		'token' : token
 	}
 	return user
+
+def setUpFlyer(price, image, qr, info, startTimestamp, endTimestamp):
+	flyer = {
+		'price' : price,
+		'image' : image,
+		'qr' : qr,
+		'info' : info,
+		'startTimestamp' : startTimestamp,
+		'endTimestamp' : endTimestamp
+	}
+	return flyer
 
 def locationDistance(lat1, long1, lat2, long2):
 	#delta 0.0001 = 11m
@@ -165,6 +189,8 @@ def createDatabase():
 	c.execute(users_table_sql)
 	c.execute(locations_table_sql)
 	c.execute(places_table_sql)
+	c.execute(business_table_sql)
+	c.execute(flyers_table_sql)
 	conn.commit()
 	conn.close()
 
