@@ -42,10 +42,10 @@ def businessSignIn(conn, mail, password):
 	c.execute("SELECT password, token, id FROM business WHERE mail = ?", (mail,))
 	dbPass = c.fetchone()
 	if(dbPass == None):
-		1
+		return 1
 
 	if not bcrypt.checkpw(password.encode('utf8'), dbPass[0]):
-		2
+		return 2
 
 	return 0
 
@@ -71,8 +71,26 @@ def businessSignUp(conn, place, password, mail):
 	return 0
 
 
+def authenticateBusiness(conn, placeId, token):
+	c = conn.cursor()
+
+	c.execute("SELECT token FROM business WHERE id = ?", (placeId,))
+	dbPass = c.fetchone()
+	if(dbPass == None):
+		return False
+
+	if(token != dbPass[0]):
+		return False
+
+	return True
+
 #TODO change startTime and endTime wih the local opening and closing hours
 def getBusinessUserData(conn, placeId, days):
+
+	#TODO
+	"""if(authenticateBusiness(conn, placeId, token) == False):
+					return 1"""
+
 	dateTS = utils.timeInMillis()
 	usersInfo = []
 	usersAge = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -146,6 +164,11 @@ def getBusinessUserData(conn, placeId, days):
 
 
 def getBusinessInflowData(conn, placeId, days):
+
+	#TODO
+	"""if(authenticateBusiness(conn, placeId, token) == False):
+					return 1"""
+
 	nowTimestamp = utils.dayInMillis()
 	inflowDataValues = []
 	inflowDataLabels = []
@@ -166,6 +189,34 @@ def getBusinessInflowData(conn, placeId, days):
 
 	return [inflowDataLabels, inflowDataValues]
 
+
+def businessPostFlyer(conn, placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp):
+	if(authenticateBusiness(conn, placeId, token) == False):
+		return 1
+
+	c = conn.cursor()
+
+	t=(placeId, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
+	c.execute("""INSERT INTO flyers(placeId, price, image, qr, info, startTimestamp, endTimestamp) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)""", t)
+	conn.commit()
+	return 0
+
+#TODO This is for the users, so add user authentication, not business authentication
+#TODO Check if the place exists (maybe, anyway, it wont return an error)
+def businessGetUsersFlyers(conn, placeId):	
+	flyers = []
+	c = conn.cursor()
+
+	timestamp = utils.timeInMillis()
+	c.execute("""SELECT * FROM flyers WHERE placeId = ? AND
+		startTimestamp >= ? AND endTimestamp <= ? """, (placeId, timestamp, timestamp))
+
+	for i in c.fetchall():
+		flyer = utils.setUpFlyer(i[2], i[3], i[4], i[5], i[6], i[7])
+		flyers.append(flyer)
+
+	return flyer
 
 #DEPRECATED
 def getBusinessUserDataDEPRECATED(placeId, days):
