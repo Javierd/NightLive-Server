@@ -119,8 +119,9 @@ def businessData():
 def flyers():
 	if request.method == 'POST':
 
-		if 'placeId' in request.args and 'token' in request.args and 'price' in request.args and 'imageUrl' in request.args and 'qrUrl' in request.args and 'info' in request.args and 'startTimestamp' in request.args and 'endTimestamp' in request.args:
+		if 'name' in request.args and 'placeId' in request.args and 'token' in request.args and 'price' in request.args and 'imageUrl' in request.args and 'qrUrl' in request.args and 'info' in request.args and 'startTimestamp' in request.args and 'endTimestamp' in request.args:
 
+			name = request.args.get('name')
 			placeId = request.args.get('placeId')
 			token = request.args.get('token')
 			price = request.args.get('price')
@@ -130,7 +131,7 @@ def flyers():
 			startTimestamp = request.args.get('startTimestamp')
 			endTimestamp = request.args.get('endTimestamp')
 
-			result = business.businessPostFlyer(get_db(), placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
+			result = business.businessPostFlyer(get_db(), name, placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
 			if(result == 1):
 				return "1", 401 #Unauthorized
 

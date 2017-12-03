@@ -190,19 +190,19 @@ def getBusinessInflowData(conn, placeId, days):
 	return [inflowDataLabels, inflowDataValues]
 
 
-def businessPostFlyer(conn, placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp):
+def businessPostFlyer(conn, name, placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp):
 	if(authenticateBusiness(conn, placeId, token) == False):
 		return 1
 
 	c = conn.cursor()
 
-	t=(placeId, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
-	c.execute("""INSERT INTO flyers(placeId, price, image, qr, info, startTimestamp, endTimestamp) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)""", t)
+	t=(name, placeId, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
+	c.execute("""INSERT INTO flyers(name, placeId, price, image, qr, info, startTimestamp, endTimestamp) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", t)
 	conn.commit()
 	return 0
 
-#TODO This is for the users, so add user authentication, not business authentication
+#TODO This is for the users, so we need to add user authentication, not business authentication
 #TODO Check if the place exists (maybe, anyway, it wont return an error)
 def businessGetUsersFlyers(conn, placeId):	
 	flyers = []
@@ -217,59 +217,3 @@ def businessGetUsersFlyers(conn, placeId):
 		flyers.append(flyer)
 
 	return flyer
-
-#DEPRECATED
-def getBusinessUserDataDEPRECATED(placeId, days):
-	dateTS = utils.timeInMillis()
-	usersInfo = []
-	usersAge = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-	usersSex = [0, 0, 0]
-
-	#TODO Allow multiple timestamps
-	startTimestamp = dateTS - days*24*3600*1000
-
-	location = placesDB.getPlaceLocation(placeId)
-	if(location == None):
-		return "The place doesn't exists"
-
-	#Get all the users that were arround that location since the timestamp (24h)
-	#TODO Change the 100m number
-	usersArroundIds = locationsDB.getUsersArround(location[0], location[1], 100, startTimestamp, dateTS)
-
-	usersData = userDB.getUsersData(usersArroundIds)
-	#From each user, get the age and sort from -18, 18-22, 23-28- 29-35- 36-40, 41-50, 51-60, 61-70, +70
-	for user in usersData:
-		age = int ((dateTS - user[1])/(1000 * 3600 * 24 *365))
-
-		#Sex
-		if user[0] == 0:
-			usersSex[0] +=1
-		elif user[0] == 1:
-			usersSex[1] +=1
-		elif user[0] == 2:
-			usersSex[2] +=1
-
-		#Ages
-		if age > 70:
-			usersAge[8] += 1
-		elif age > 60:
-			usersAge[7] += 1
-		elif age > 50:
-			usersAge[6] += 1
-		elif age > 40:
-			usersAge[5] += 1
-		elif age > 35:
-			usersAge[4] += 1
-		elif age > 29:
-			usersAge[3] += 1
-		elif age > 23:
-			usersAge[2] += 1
-		elif age > 18:
-			usersAge[1] += 1
-		else:
-			usersAge[0] += 1
-
-	usersInfo.append(usersSex)
-	usersInfo.append(usersAge)
-
-	return usersInfo

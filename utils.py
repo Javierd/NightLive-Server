@@ -45,6 +45,7 @@ business_table_sql = """CREATE TABLE IF NOT EXISTS business(
 
 flyers_table_sql = """CREATE TABLE IF NOT EXISTS flyers(
 							id INTEGER PRIMARY KEY AUTOINCREMENT,
+							name TEXT,
 							placeId TEXT NOT NULL,
 							price REAL NOT NULL,
 							image TEXT,
