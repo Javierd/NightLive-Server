@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>NIGHTLIVE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Free HTML5 Website Template by gettemplates.co" />
+    <meta name="keywords" content="free website templates, free html5, free template, free bootstrap, free website template, html5, css3, mobile first, responsive" />
+    <meta name="author" content="gettemplates.co" />
+
+      <!-- Animate.css -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animate.css') }}">
+    <!-- Icomoon Icon Fonts-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icomoon.css') }}">
+    <!-- Bootstrap  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    <!-- Magnific Popup -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/magnific-popup.css') }}">
+
+    <!-- Owl Carousel  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/owl.theme.default.min.css') }}">
+
+    <!-- Theme style  -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="styleSheet" href="{{ url_for('static', filename='css/business_data.css') }}">
+
+    <!-- Modernizr JS -->
+    <script src="../static/js/modernizr-2.6.2.min.js"></script>
+    <!-- Chart.js -->
+    <script src='../static/js/Chart.min.js'></script>
+    <!-- jquery -->
+    <script src='../static/js/jquery.min.js'></script>
+
+    <!-- Bootstrap Date-Picker Plugin -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Roboto: 300, 400' rel='stylesheet' type='text/css'>
+
+    <script type="text/javascript">
+      var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+ 
+  </head>
+  <body>
+    <center>
+        <header id="gtco-header">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" style='height: 25%; width: 25%; min-width: 400px; object-fit: contain;'>
+        </header>
+
+        <content> 
+          <div class="wrapper">
+            <div class="leftBar list-unstyled components">
+              <button class="leftBarOption" id="userAge" onclick="userAgeChart()">
+                Users age
+              </button><br/>
+
+              <button class="leftBarOption" id="userGender" onclick="userSexChart()">
+                Users gender
+              </button><br/>
+
+              <button class="leftBarOption" id="placeInflow" onclick="inflowChart()">
+                Place inflow
+              </button><br/>
+
+              <button class="leftBarOption" id="placeFlyers" onclick="placeFlyers()">
+                Place flyers
+              </button><br/>
+
+              <button class="leftBarOption" id="placeOptions">
+                Place options
+              </button>
+            </div>
+
+            <div class="content" id="content-container">
+              <canvas id="chart"></canvas>
+              <div id="flyerDiv" style="display: none;">
+                <form action="#">
+                  <div class="row form-group">
+                    <div class="col-md-5">
+                      <label for="fname">Name</label>
+                      <input type="text" id="fname" class="form-control" placeholder="Flyer name">
+                    </div>
+                    <div class="col-md-5">
+                      <label for="ldate">Date range</label>
+                      <div class="input-group input-daterange" name="date">
+                          <input type="text" class="form-control" name="date-from" value="Start date">
+                          <div class="input-group-addon">to</div>
+                          <input type="text" class="form-control" name="date-to" value="End date">
+                      </div>
+                    </div>
+                    <div class="col-md-2">
+                      <label for="price">Price</label>
+                      <input type="text" id="lname" class="form-control" placeholder="Flyer price">
+                    </div>
+                  </div>
+
+                  <div class="row form-group">
+                    <div class="col-md-5">
+                      <label for="info">Info</label>
+                      <textarea id="finfo" rows="3" class="form-control" placeholder="Information about the flyer(DJ, music style, free drinks...)"></textarea>
+                    </div>
+
+                    <div class="col-md-5">
+                      <label style="margin-bottom: 12px;">Promotional image (16:9)</label>
+                      <div class="preview">
+                        <p style="font-size: 16px;">No files currently selected for upload</p>
+                      </div>
+                      <div>
+                        <label style="margin-top: 12px;" for="image_uploads" class="btn btn-primary">Select file</label>
+                        <input id="image_uploads" name="image_uploads" type="file" accept=".jpg, .jpeg, .png"/>
+                      </div>
+                    </div>
+
+                    <div class="col-md-2">
+                      <label for="id">Flyer id</label>
+                      <textarea id="fid" rows="3" class="form-control" placeholder="Unique identifier in order to generate a QR code."></textarea>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <input type="submit" value="Send Message" class="btn btn-primary">
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </content>
+      </center>
+  </body>
+</html>
+
+<!--<button href=# id=ajaxButton>Text</button>
+
+    <script type="text/javascript">
+      $(function() {
+        var submit_form = function(e) {
+          $.getJSON($SCRIPT_ROOT + '/_add_numbers', {
+            a: "Test1",
+            b: "Test2"
+          }, function(data) {
+            $('#result').text(data.result);
+            $('input[name=a]').focus().select();
+          });
+          return false;
+        };
+
+        $('button#ajaxButton').bind('click', submit_form);
+      });
+    </script>-->
+
+<script>
+  //For the datetime range picker
+    $(document).ready(function(){
+      var date_from_input=$('input[name="date-from"]');
+      var date_to_input=$('input[name="date-to"]');
+      $('.input-daterange').datepicker({
+        format: 'mm/dd/yyyy',
+        todayBtn: true,
+        todayHighlight: true,
+        autoclose: false
+      });
+      date_from_input.datepicker('update', new Date());
+      date_to_input.datepicker('update', new Date());
+    })
+
+    //For the file select button
+    //https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file
+    var input = document.querySelector('#image_uploads');
+    var preview = document.querySelector('.preview');
+    input.style.opacity = 0;
+    input.addEventListener('change', updateImageDisplay);
+
+    function updateImageDisplay() {
+      while(preview.firstChild) {
+        preview.removeChild(preview.firstChild);
+      }
+
+      var curFiles = input.files;
+      if(curFiles.length === 0) {
+        var para = document.createElement('p');
+        para.textContent = 'No file currently selected for upload';
+        preview.appendChild(para);
+      } else {
+        if(validFileType(curFiles[0])) {
+          var image = document.createElement('img');
+          image.style["max-height"]="180px";
+
+          image.src = window.URL.createObjectURL(curFiles[0]);
+          preview.appendChild(image);
+
+        } else {
+          para.textContent = 'File name ' + curFiles[0].name + ': Not a valid file type. Update your selection.';
+          preview.appendChild(para);
+        }
+      }
+    }
+
+    var fileTypes = [
+      'image/jpeg',
+      'image/pjpeg',
+      'image/png'
+    ]
+
+    function validFileType(file) {
+      for(var i = 0; i < fileTypes.length; i++) {
+        if(file.type === fileTypes[i]) {
+          return true;
+        }
+      }
+      return false;
+    }
+</script>
+
+<!--Javascript-->
+    <script type="text/javascript">
+      Chart.defaults.global.responsive = true;
+      Chart.defaults.global.maintainAspectRatio = false;
+
+      // define the age chart data
+      var ageChartData = {
+        labels : [{% for label in usersLabels[1] %}
+                   "{{label}}",
+                  {% endfor %}],
+        datasets : [{
+            label: '{{ legend }}',
+            data : [{% for item in usersValues[1] %}
+                      {{item}},
+                    {% endfor %}],
+            backgroundColor: [{% for color in usersBgColors[1] %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderColor: [{% for color in usersBorderColors[1] %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderWidth: 0,
+        }]
+      }
+
+      // define the gender chart data
+      var sexChartData = {
+        labels : [{% for label in usersLabels[0] %}
+                   "{{label}}",
+                  {% endfor %}],
+        datasets : [{
+            label: "{{ legend }}",
+            data : [{% for item in usersValues[0] %}
+                      {{item}},
+                    {% endfor %}],
+            backgroundColor: [{% for color in usersBgColors[0] %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderColor: [{% for color in usersBorderColors[0] %}
+                      "{{color}}",
+                    {% endfor %}],
+            borderWidth: 0,
+        }]
+      }
+
+      // define the place inflow chart data
+      var inflowChartData = {
+        labels : [{% for label in inflowLabels %}
+                   "{{label}}",
+                  {% endfor %}],
+        datasets : [{
+            label: "Persons along the night",
+            backgroundColor: "rgba(0, 188, 212, 0.4)",
+            borderColor: "rgba(0, 188, 212, 0.6)",
+            data : [{% for item in inflowValues %}
+                      {{item}},
+                    {% endfor %}],
+        }]
+      }
+      
+
+      var pieChartOptions = {
+        rotation: -Math.PI,
+        cutoutPercentage: 30,
+        circumference: Math.PI,
+        legend: {
+          position: 'left'
+        },
+        animation: {
+          animateRotate: true,
+          animateScale: false
+        },
+        tooltips: {
+          //Make the average
+          callbacks: {
+            label: function(tooltipItem, data) {
+              var allData = data.datasets[tooltipItem.datasetIndex].data;
+              var tooltipLabel = data.labels[tooltipItem.index];
+              var tooltipData = allData[tooltipItem.index];
+              var total = 0;
+              for (var i in allData) {
+                total += allData[i];
+              }
+              var tooltipPercentage = Math.round((tooltipData / total) * 100);        
+              return tooltipLabel + ": " + tooltipPercentage + "%";
+            }
+          }
+        }
+      };
+
+      var lineChartOptions = {
+        legend: {
+          position: 'bottom',
+          //Don't allow the user to hide the chart data
+          onClick: (e) => e.stopPropagation()
+        }
+      };
+
+      // get chart canvas
+      var ctx = document.getElementById("chart").getContext("2d");
+      
+      var mChart = new Chart(ctx, {
+        type: 'pie',
+        data: ageChartData,
+        options: pieChartOptions
+      });
+
+      $(function() {
+        $('input[name="startDate"]').daterangepicker();
+      });
+      
+
+      /*var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: inflowChartData
+      });*/
+
+      function inflowChart(){
+        //Let the user refresh the data
+        $("#chart").css("display","block");
+        $("#flyerDiv").css("display","none");
+
+        if(mChart.config.type == 'line'){
+          mChart.config.data == inflowChartData;
+          mChart.destroyDatasetMeta(0);
+          mChart.update();
+        }else{
+          mChart.destroy();
+          mChart = new Chart(ctx, {
+            type: 'line',
+            data: inflowChartData,
+            options: lineChartOptions
+          });
+        }
+      }
+
+      function userSexChart(){
+        //Let the user refresh the data
+        $("#chart").css("display","block");
+        $("#flyerDiv").css("display","none");
+
+        if(mChart.config.type == 'pie'){
+          mChart.config.data = sexChartData;
+          mChart.destroyDatasetMeta(0);
+          mChart.update();
+        }else{
+          mChart.destroy();
+          mChart = new Chart(ctx, {
+            type: 'pie',
+            data: sexChartData,
+            options: pieChartOptions
+          });
+        }
+      };
+
+      function userAgeChart(){
+        //Let the user refresh the data
+        $("#chart").css("display","block");
+        $("#flyerDiv").css("display","none");
+
+        if(mChart.config.type == 'pie'){
+          mChart.config.data = ageChartData;
+          mChart.destroyDatasetMeta(0);
+          mChart.update();
+        }else{
+          mChart.destroy();
+          mChart = new Chart(ctx, {
+            type: 'pie',
+            data: ageChartData,
+            options: pieChartOptions
+          });
+        }
+      };
+
+      function placeFlyers(){
+        $("#flyerDiv").css("display","block");
+        $("#chart").css("display","none");
+      };
+
+      
+
+    </script>

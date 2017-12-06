@@ -1,11 +1,14 @@
+from flask import Flask, request, jsonify, render_template, _app_ctx_stack
 import utils
 import userDatabase as userDB
 import locationsDatabase as locationsDB
 import business
 import sqlite3
-from flask import Flask, request, jsonify, render_template, _app_ctx_stack
+from websiteServer import web_page
+
 
 server = Flask(__name__)
+server.register_blueprint(web_page)
 DATABASE = 'database.db'
 
 def get_db():
@@ -22,10 +25,6 @@ def close_connection(exception):
 	if db is not None:
 		db.commit()
 		db.close()
-
-@server.route('/')
-def index():
-	return 'Hello world'
 
 @server.route('/location', methods=['GET', 'POST'])
 def location():
@@ -105,7 +104,7 @@ def businessData():
 		inflowData = business.getBusinessInflowData(get_db(), placeId, 15)
 		#userAges = [12, 16, 2, 3, 12, 18, 27, 15, 11, 7, 4, 1]
 
-		return render_template('user_age_chart.html', 
+		return render_template('business_data.html', 
 			usersValues=userInfo, 
 			usersLabels=[business.sexLabels, business.ageLabels],
 			usersBgColors=[business.sexBgColors, business.ageBgColors], 
