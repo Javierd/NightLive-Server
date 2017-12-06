@@ -4,6 +4,7 @@ import sqlite3
 import bcrypt
 from random import randint
 from datetime import datetime, timezone, date
+from PIL import Image
 
 users_table_sql = """CREATE TABLE IF NOT EXISTS users(
 							id TEXT PRIMARY KEY,
@@ -127,6 +128,38 @@ def setUpFlyer(price, image, qr, info, startTimestamp, endTimestamp):
 	}
 	return flyer
 
+def imageHexColor(filename):
+	i = Image.open(filename)
+	h = i.histogram()
+
+	# split into red, green, blue
+	r = h[0:256]
+	g = h[256:256*2]
+	b = h[256*2: 256*3]
+
+	# perform the weighted average of each channel:
+	# the *index* is the channel value, and the *value* is its weight
+	red = sum(r)
+	green = sum(g)
+	blue = sum(b)
+	if(red > 0):
+		red = sum( i*w for i, w in enumerate(r) ) / red
+	else:
+		red = 0
+
+	if(green > 0):
+		green = sum( i*w for i, w in enumerate(g) ) / green
+	else:
+		green = 0
+
+	if(blue > 0):
+		blue = sum( i*w for i, w in enumerate(b) ) / blue
+	else:
+		blue = 0
+
+	return '#'+format(red, 'X').zfill(2)+format(green, 'X').zfill(2)+format(blue, 'X').zfill(2)
+	
+
 def locationDistance(lat1, long1, lat2, long2):
 	#delta 0.0001 = 11m
 	deltaLat = lat2 - lat1
@@ -196,5 +229,5 @@ def createDatabase():
 	conn.close()
 
 #createDatabase()
-#generateRandomPoints()
+generateRandomPoints()
 #generateUsers()
