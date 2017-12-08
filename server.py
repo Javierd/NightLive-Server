@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, render_template, _app_ctx_stack
+from flask import Flask, request, jsonify, render_template, redirect, url_for, _app_ctx_stack, send_from_directory, flash
+import os
 import utils
 import userDatabase as userDB
 import locationsDatabase as locationsDB
@@ -6,10 +7,17 @@ import business
 import sqlite3
 from websiteServer import web_page
 
+DATABASE = 'database.db'
+FLYER_IMAGE_UPLOAD_FOLDER = './FlyerImages'
+FLYER_IMAGE_ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
+
 
 server = Flask(__name__)
 server.register_blueprint(web_page)
-DATABASE = 'database.db'
+server.config['FLYER_IMAGE_UPLOAD_FOLDER'] = FLYER_IMAGE_UPLOAD_FOLDER
+server.secret_key = '\x07\xcd\xc8\x84\xd8s9tO{\xbc\x1e\xac^|>\xf5\xce\xe8\xb8\xe2\xa5\x01H'
+#Limit the images size to 16 MBytes
+server.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 def get_db():
 	db = getattr(_app_ctx_stack.top , '_database', None)
@@ -18,6 +26,10 @@ def get_db():
 		conn.execute("PRAGMA foreign_keys = 1")
 		db = _app_ctx_stack.top._database = conn
 	return db
+
+def flyer_allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in FLYER_IMAGE_ALLOWED_EXTENSIONS
 
 @server.teardown_appcontext
 def close_connection(exception):
@@ -114,10 +126,10 @@ def businessData():
 	else:
 		return "-1", 400
 
-@server.route('/business/flyers', methods=['GET', 'POST'])
-def flyers():
+#TODO, ver como enviar el token y el placeid para que sea seguro, y activar este
+@server.route('/business/flyers2', methods=['GET', 'POST'])
+def flyers2():
 	if request.method == 'POST':
-
 		if 'name' in request.args and 'placeId' in request.args and 'token' in request.args and 'price' in request.args and 'imageUrl' in request.args and 'qrUrl' in request.args and 'info' in request.args and 'startTimestamp' in request.args and 'endTimestamp' in request.args:
 
 			name = request.args.get('name')
@@ -136,6 +148,7 @@ def flyers():
 
 			return '"'+str(result)+'"'
 		else:
+			#TODO Flash de que falta algo
 			return "-1", 400
 
 	else:
@@ -146,6 +159,59 @@ def flyers():
 			return jsonify({'flyers': result})
 		else:
 			return "-1", 400
+
+@server.route('/business/flyers', methods=['GET', 'POST'])
+def flyers():
+	if request.method == 'POST':
+		imageUrl = None
+
+		if 'image_uploads' in request.files:
+			file = request.files['image_uploads']
+			if file.filename != '' and file and flyer_allowed_file(file.filename):
+				filename = utils.setFyerImageFileName("place", file.filename)
+				file.save(os.path.join(server.config['FLYER_IMAGE_UPLOAD_FOLDER'], filename))
+				#The [1:] allow us to remove the / of the start
+				imageUrl = request.url_root+url_for('uploaded_file',filename=filename)[1:]
+
+
+		if 'flyer_name' in request.form and 'flyer_price' in request.form and 'flyer_info' in request.form and 'start_date' in request.form and 'end_date' in request.form:
+
+			name = request.form.get('flyer_name')
+			price = request.form.get('flyer_price')
+
+			info = request.form.get('flyer_info')
+			#TODO pass those dates to milliseconds
+			startTimestamp = utils.dateToMillis(request.form.get('start_date'), '%m/%d/%Y')
+			endTimestamp = utils.dateToMillis(request.form.get('end_date'), '%m/%d/%Y')
+
+			qrCode = None
+			if 'flyer_qrCode' in request.form:
+				qrCode = request.form.get('flyer_qrCode')
+
+			result = business.businessPostFlyer(get_db(), name, "ChIJ2-1d6OsmQg0RbynEoIYgmw8", None, price, imageUrl, qrCode, info, startTimestamp, endTimestamp)
+			if(result == 1):
+				return "1", 401 #Unauthorized
+
+			return '"'+str(result)+'"'
+		else:
+			#TODO Flash de que falta algo
+			return "-1", 400
+
+	else:
+		if 'placeId' in request.args:
+
+			placeId = request.args.get('placeId')
+			result = business.businessGetUsersFlyers(get_db(), placeId)
+			return jsonify({'flyers': result})
+		else:
+			return "-1", 400
+
+
+@server.route('/flyers/images/<filename>')
+def flyer_image(filename):
+    return send_from_directory(server.config['FLYER_IMAGE_UPLOAD_FOLDER'],
+                               filename)
+
 
 @server.route('/user/check', methods=['GET'])
 def userCheck():

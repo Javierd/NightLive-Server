@@ -82,30 +82,30 @@
             <div class="content" id="content-container">
               <canvas id="chart"></canvas>
               <div id="flyerDiv" style="display: none;">
-                <form action="#">
+                <form action = "http://localhost:5000/business/flyers" method = "POST" enctype = "multipart/form-data">
                   <div class="row form-group">
                     <div class="col-md-5">
                       <label for="fname">Name</label>
-                      <input type="text" id="fname" class="form-control" placeholder="Flyer name">
+                      <input type="text" id="flyer_name" name="flyer_name" class="form-control" placeholder="Flyer name" autofocus>
                     </div>
                     <div class="col-md-5">
                       <label for="ldate">Date range</label>
                       <div class="input-group input-daterange" name="date">
-                          <input type="text" class="form-control" name="date-from" value="Start date">
+                          <input type="text" class="form-control" name="start_date" value="Start date">
                           <div class="input-group-addon">to</div>
-                          <input type="text" class="form-control" name="date-to" value="End date">
+                          <input type="text" class="form-control" name="end_date" value="End date">
                       </div>
                     </div>
                     <div class="col-md-2">
                       <label for="price">Price</label>
-                      <input type="text" id="lname" class="form-control" placeholder="Flyer price">
+                      <input type="number" step="any" id="flyer_price" name="flyer_price" class="form-control" placeholder="Flyer price">
                     </div>
                   </div>
 
                   <div class="row form-group">
                     <div class="col-md-5">
                       <label for="info">Info</label>
-                      <textarea id="finfo" rows="3" class="form-control" placeholder="Information about the flyer(DJ, music style, free drinks...)"></textarea>
+                      <textarea id="flyer_info" name="flyer_info" rows="3" class="form-control" placeholder="Information about the flyer(DJ, music style, free drinks...)"></textarea>
                     </div>
 
                     <div class="col-md-5">
@@ -114,14 +114,14 @@
                         <p style="font-size: 16px;">No files currently selected for upload</p>
                       </div>
                       <div>
-                        <label style="margin-top: 12px;" for="image_uploads" class="btn btn-primary">Select file</label>
+                        <label style="margin-top: 12px;" for="image_uploads" class="btn btn-primary">Select image</label>
                         <input id="image_uploads" name="image_uploads" type="file" accept=".jpg, .jpeg, .png"/>
                       </div>
                     </div>
 
                     <div class="col-md-2">
                       <label for="id">Flyer id</label>
-                      <textarea id="fid" rows="3" class="form-control" placeholder="Unique identifier in order to generate a QR code."></textarea>
+                      <textarea id="fid" rows="3" name="flyer_qrCode" class="form-control" placeholder="Unique identifier in order to generate a QR code."></textarea>
                     </div>
                   </div>
                   <div class="form-group">
@@ -158,8 +158,8 @@
 <script>
   //For the datetime range picker
     $(document).ready(function(){
-      var date_from_input=$('input[name="date-from"]');
-      var date_to_input=$('input[name="date-to"]');
+      var date_from_input=$('input[name="start_date"]');
+      var date_to_input=$('input[name="end_date"]');
       $('.input-daterange').datepicker({
         format: 'mm/dd/yyyy',
         todayBtn: true,

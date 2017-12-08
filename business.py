@@ -183,7 +183,7 @@ def getBusinessInflowData(conn, placeId, days):
 		startTimestamp = nowTimestamp - (i+1)*24*3600*1000 
 		endTimestamp = nowTimestamp - i*24*3600*1000 
 		numUsers = locationsDB.getNumUsersArround(conn, location[0], location[1], 100, startTimestamp, endTimestamp)
-		dateStr = utils.millisToDate(startTimestamp, "%d/%m/%Y")
+		dateStr = utils.millisToDate(startTimestamp, "%m/%d/%Y")
 		inflowDataValues.append(numUsers)
 		inflowDataLabels.append(dateStr)
 
@@ -191,14 +191,17 @@ def getBusinessInflowData(conn, placeId, days):
 
 
 def businessPostFlyer(conn, name, placeId, token, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp):
-	if(authenticateBusiness(conn, placeId, token) == False):
+	#TODO Borrar token!=None, solo para pruebas sin tener que pasar el token
+	if(token!=None and authenticateBusiness(conn, placeId, token) == False):
 		return 1
 
 	c = conn.cursor()
 
 	t=(name, placeId, price, imageUrl, qrUrl, info, startTimestamp, endTimestamp)
+	print(t)
+	#Make sure the price is a real
 	c.execute("""INSERT INTO flyers(name, placeId, price, image, qr, info, startTimestamp, endTimestamp) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", t)
+		VALUES (?, ?, REPLACE(?, ',', '.'), ?, ?, ?, ?, ?)""", t)
 	conn.commit()
 	return 0
 
@@ -210,10 +213,10 @@ def businessGetUsersFlyers(conn, placeId):
 
 	timestamp = utils.timeInMillis()
 	c.execute("""SELECT * FROM flyers WHERE placeId = ? AND
-		startTimestamp >= ? AND endTimestamp <= ? """, (placeId, timestamp, timestamp))
+		startTimestamp <= ? AND endTimestamp >= ? """, (placeId, timestamp, timestamp))
 
 	for i in c.fetchall():
 		flyer = utils.setUpFlyer(i[2], i[3], i[4], i[5], i[6], i[7])
 		flyers.append(flyer)
 
-	return flyer
+	return flyers

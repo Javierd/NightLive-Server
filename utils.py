@@ -1,3 +1,4 @@
+from werkzeug.utils import secure_filename
 import time
 import math
 import sqlite3
@@ -5,6 +6,7 @@ import bcrypt
 from random import randint
 from datetime import datetime, timezone, date
 from PIL import Image
+
 
 users_table_sql = """CREATE TABLE IF NOT EXISTS users(
 							id TEXT PRIMARY KEY,
@@ -85,11 +87,23 @@ def millisToDate(millis, format):
 	d = date.fromtimestamp(millis/1000)
 	return d.strftime(format)
 
+def dateToMillis(date, dformat):
+	#Set the hour at till we sent the data 12:00 AM
+	#TODO Check if the timezone could cause any errors and how to solve them
+	dt = datetime.strptime(date, dformat)
+	dt = dt.replace(hour=12, minute=0, second=0, microsecond=0)
+	return int(round(dt.timestamp()*1000))
+
 def getRadius(numPoints):
 	#Linear ecuation, f(15)=5, f(100)=60
 	if(numPoints < 10):
 		return 2
 	return (int)(55/85 * numPoints + 5 - 55*15/85)
+
+def setFyerImageFileName(place, filename):
+	#TODO Check if the name already exists and change it.
+	filename = secure_filename(filename)
+	return place+'_'+filename
 
 
 def setUpPoint(latitude, longitude, radius, places):
@@ -229,5 +243,5 @@ def createDatabase():
 	conn.close()
 
 #createDatabase()
-generateRandomPoints()
+#generateRandomPoints()
 #generateUsers()
