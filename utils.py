@@ -7,6 +7,8 @@ from random import randint
 from datetime import datetime, timezone, date
 from PIL import Image
 
+SERVER_URL = 'http://192.168.1.92:5000'
+
 
 users_table_sql = """CREATE TABLE IF NOT EXISTS users(
 							id TEXT PRIMARY KEY,
@@ -52,6 +54,7 @@ flyers_table_sql = """CREATE TABLE IF NOT EXISTS flyers(
 							placeId TEXT NOT NULL,
 							price REAL NOT NULL,
 							image TEXT,
+							color TEXT,
 							qr TEXT,
 							info TEXT,
 							startTimestamp BLOB,
@@ -131,10 +134,12 @@ def setUpUserInfo(result, name, token):
 	}
 	return user
 
-def setUpFlyer(price, image, qr, info, startTimestamp, endTimestamp):
+def setUpFlyer(name, price, image, color, qr, info, startTimestamp, endTimestamp):
 	flyer = {
+		'name' : name,
 		'price' : price,
 		'image' : image,
+		'color' : color,
 		'qr' : qr,
 		'info' : info,
 		'startTimestamp' : startTimestamp,
@@ -156,18 +161,19 @@ def imageHexColor(filename):
 	red = sum(r)
 	green = sum(g)
 	blue = sum(b)
+
 	if(red > 0):
-		red = sum( i*w for i, w in enumerate(r) ) / red
+		red =  sum( i*w for i, w in enumerate(r) ) // red
 	else:
 		red = 0
 
 	if(green > 0):
-		green = sum( i*w for i, w in enumerate(g) ) / green
+		green = sum( i*w for i, w in enumerate(g) ) // green
 	else:
 		green = 0
 
 	if(blue > 0):
-		blue = sum( i*w for i, w in enumerate(b) ) / blue
+		blue = sum( i*w for i, w in enumerate(b) ) // blue
 	else:
 		blue = 0
 

@@ -156,6 +156,9 @@ def flyers2():
 
 			placeId = request.args.get('placeId')
 			result = business.businessGetUsersFlyers(get_db(), placeId)
+
+			print(result)
+			print('Devolvemos')
 			return jsonify({'flyers': result})
 		else:
 			return "-1", 400
@@ -164,14 +167,15 @@ def flyers2():
 def flyers():
 	if request.method == 'POST':
 		imageUrl = None
+		color = None
 
 		if 'image_uploads' in request.files:
 			file = request.files['image_uploads']
 			if file.filename != '' and file and flyer_allowed_file(file.filename):
 				filename = utils.setFyerImageFileName("place", file.filename)
 				file.save(os.path.join(server.config['FLYER_IMAGE_UPLOAD_FOLDER'], filename))
-				#The [1:] allow us to remove the / of the start
-				imageUrl = request.url_root+url_for('uploaded_file',filename=filename)[1:]
+				imageUrl = url_for('flyer_image',filename=filename)
+				color = utils.imageHexColor(server.config['FLYER_IMAGE_UPLOAD_FOLDER']+'/'+filename)
 
 
 		if 'flyer_name' in request.form and 'flyer_price' in request.form and 'flyer_info' in request.form and 'start_date' in request.form and 'end_date' in request.form:
@@ -188,7 +192,7 @@ def flyers():
 			if 'flyer_qrCode' in request.form:
 				qrCode = request.form.get('flyer_qrCode')
 
-			result = business.businessPostFlyer(get_db(), name, "ChIJ2-1d6OsmQg0RbynEoIYgmw8", None, price, imageUrl, qrCode, info, startTimestamp, endTimestamp)
+			result = business.businessPostFlyer(get_db(), name, "ChIJ2-1d6OsmQg0RbynEoIYgmw8", None, price, imageUrl, color, qrCode, info, startTimestamp, endTimestamp)
 			if(result == 1):
 				return "1", 401 #Unauthorized
 
