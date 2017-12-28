@@ -1,0 +1,7 @@
+Flask
+gunicorn
+googleplaces
+threading
+numpy
+PIL
+sqlite3
