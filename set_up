@@ -1,0 +1,4 @@
+git clone https://github.com/Javierd/NightLive-Server.git
+mkvirtualenv --python=/usr/bin/python3.5.2 my-virtualenv
+workon my-virtualenv
+pip install -r requirements.txt
