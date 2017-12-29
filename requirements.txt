@@ -1,6 +1,6 @@
 Flask
 gunicorn
-googleplaces
+python-google-places
 threading
 numpy
 PIL
