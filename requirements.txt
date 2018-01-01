@@ -2,4 +2,5 @@ Flask
 gunicorn
 python-google-places
 numpy
+bcrypt
 pillow
