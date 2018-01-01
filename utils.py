@@ -7,7 +7,7 @@ from random import randint
 from datetime import datetime, timezone, date
 from PIL import Image
 
-SERVER_URL = 'http://192.168.1.92:5000'
+SERVER_URL = 'http://javierd.pythonanywhere.com'
 
 
 users_table_sql = """CREATE TABLE IF NOT EXISTS users(
@@ -192,7 +192,7 @@ def locationDistance(lat1, long1, lat2, long2):
 	return distance
 	
 def generateRandomPoints():
-	conn = sqlite3.connect('database.db')
+	conn = sqlite3.connect('/home/Javierd/NightLive-Server/database.db')
 	conn.execute("PRAGMA foreign_keys = 1")
 	c = conn.cursor()
 
@@ -249,5 +249,5 @@ def createDatabase():
 	conn.close()
 
 #createDatabase()
-#generateRandomPoints()
 #generateUsers()
+#generateRandomPoints()

@@ -1,7 +1,5 @@
 Flask
 gunicorn
 python-google-places
-threading
 numpy
-PIL
-sqlite3
+pillow
