@@ -53,6 +53,7 @@ flyers_table_sql = """CREATE TABLE IF NOT EXISTS flyers(
 							name TEXT,
 							placeId TEXT NOT NULL,
 							price REAL NOT NULL,
+							currency TEXT,
 							image TEXT,
 							color TEXT,
 							qr TEXT,
@@ -134,10 +135,11 @@ def setUpUserInfo(result, name, token):
 	}
 	return user
 
-def setUpFlyer(name, price, image, color, qr, info, startTimestamp, endTimestamp):
+def setUpFlyer(name, price, currency, image, color, qr, info, startTimestamp, endTimestamp):
 	flyer = {
 		'name' : name,
 		'price' : price,
+		'currency' : currency,
 		'image' : image,
 		'color' : color,
 		'qr' : qr,

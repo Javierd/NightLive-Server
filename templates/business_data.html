@@ -84,7 +84,7 @@
               <div id="flyerDiv" style="display: none;">
                 <form action = "http://192.168.1.92:5000/business/flyers" method = "POST" enctype = "multipart/form-data">
                   <div class="row form-group">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                       <label for="fname">Name</label>
                       <input type="text" id="flyer_name" name="flyer_name" class="form-control" placeholder="Flyer name" autofocus>
                     </div>
@@ -100,10 +100,14 @@
                       <label for="price">Price</label>
                       <input type="number" step="any" id="flyer_price" name="flyer_price" class="form-control" placeholder="Flyer price">
                     </div>
+                    <div class="col-md-1">
+                      <label for="currency">Currency</label>
+                      <input type="text" id="flyer_currency" name="flyer_currency" class="form-control" placeholder="$">
+                    </div>
                   </div>
 
                   <div class="row form-group">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                       <label for="info">Info</label>
                       <textarea id="flyer_info" name="flyer_info" rows="3" class="form-control" placeholder="Information about the flyer(DJ, music style, free drinks...)"></textarea>
                     </div>
@@ -119,7 +123,7 @@
                       </div>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                       <label for="id">Flyer id</label>
                       <textarea id="fid" rows="3" name="flyer_qrCode" class="form-control" placeholder="Unique identifier in order to generate a QR code."></textarea>
                     </div>

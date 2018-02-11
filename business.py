@@ -190,18 +190,18 @@ def getBusinessInflowData(conn, placeId, days):
 	return [inflowDataLabels, inflowDataValues]
 
 
-def businessPostFlyer(conn, name, placeId, token, price, imageUrl, color, qrCode, info, startTimestamp, endTimestamp):
+def businessPostFlyer(conn, name, placeId, token, price, currency, imageUrl, color, qrCode, info, startTimestamp, endTimestamp):
 	#TODO Borrar token!=None, solo para pruebas sin tener que pasar el token
 	if(token!=None and authenticateBusiness(conn, placeId, token) == False):
 		return 1
 
 	c = conn.cursor()
 
-	t=(name, placeId, price, imageUrl, color, qrCode, info, startTimestamp, endTimestamp)
+	t=(name, placeId, price, currency, imageUrl, color, qrCode, info, startTimestamp, endTimestamp)
 	print(t)
 	#Make sure the price is a real
-	c.execute("""INSERT INTO flyers(name, placeId, price, image, color, qr, info, startTimestamp, endTimestamp) 
-		VALUES (?, ?, REPLACE(?, ',', '.'), ?, ?, ?, ?, ?, ?)""", t)
+	c.execute("""INSERT INTO flyers(name, placeId, price, currency, image, color, qr, info, startTimestamp, endTimestamp) 
+		VALUES (?, ?, REPLACE(?, ',', '.'), ?, ?, ?, ?, ?, ?, ?)""", t)
 	conn.commit()
 	return 0
 
@@ -212,11 +212,11 @@ def businessGetUsersFlyers(conn, placeId):
 	c = conn.cursor()
 
 	timestamp = utils.timeInMillis()
-	c.execute("""SELECT name, price, image, color, qr, info, startTimestamp, endTimestamp FROM flyers WHERE placeId = ? AND
+	c.execute("""SELECT name, price, currency, image, color, qr, info, startTimestamp, endTimestamp FROM flyers WHERE placeId = ? AND
 		startTimestamp <= ? AND endTimestamp >= ? """, (placeId, timestamp, timestamp))
 
 	for i in c.fetchall():
-		flyer = utils.setUpFlyer(i[0], i[1], utils.SERVER_URL + i[2], i[3], i[4], i[5], i[6], i[7])
+		flyer = utils.setUpFlyer(i[0], i[1], i[2], utils.SERVER_URL + i[3], i[4], i[5], i[6], i[7], i[8])
 		flyers.append(flyer)
 
 	return flyers

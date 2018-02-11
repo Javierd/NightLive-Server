@@ -178,11 +178,11 @@ def flyers():
 				color = utils.imageHexColor(server.config['FLYER_IMAGE_UPLOAD_FOLDER']+'/'+filename)
 
 
-		if 'flyer_name' in request.form and 'flyer_price' in request.form and 'flyer_info' in request.form and 'start_date' in request.form and 'end_date' in request.form:
+		if 'flyer_name' in request.form and 'flyer_price' in request.form and 'flyer_currency' in request.form and 'flyer_info' in request.form and 'start_date' in request.form and 'end_date' in request.form:
 
 			name = request.form.get('flyer_name')
 			price = request.form.get('flyer_price')
-
+			currency = request.form.get('flyer_currency')
 			info = request.form.get('flyer_info')
 			#TODO pass those dates to milliseconds
 			startTimestamp = utils.dateToMillis(request.form.get('start_date'), '%m/%d/%Y')
@@ -192,7 +192,7 @@ def flyers():
 			if 'flyer_qrCode' in request.form:
 				qrCode = request.form.get('flyer_qrCode')
 
-			result = business.businessPostFlyer(get_db(), name, "ChIJ2-1d6OsmQg0RbynEoIYgmw8", None, price, imageUrl, color, qrCode, info, startTimestamp, endTimestamp)
+			result = business.businessPostFlyer(get_db(), name, "ChIJ2-1d6OsmQg0RbynEoIYgmw8", None, price, currency, imageUrl, color, qrCode, info, startTimestamp, endTimestamp)
 			if(result == 1):
 				return "1", 401 #Unauthorized
 
