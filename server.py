@@ -8,7 +8,7 @@ import sqlite3
 from websiteServer import web_page
 
 DATABASE = '/home/Javierd/NightLive-Server/database.db'
-FLYER_IMAGE_UPLOAD_FOLDER = './FlyerImages'
+FLYER_IMAGE_UPLOAD_FOLDER = '/home/Javierd/NightLive-Server/FlyerImages'
 FLYER_IMAGE_ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 
 
